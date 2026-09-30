@@ -8,6 +8,7 @@ import { __, sprintf } from '@wordpress/i18n';
 import { api, boot } from '../lib/api';
 import { logTime } from '../lib/format';
 import {
+	AttackTag,
 	Chips,
 	EmptyState,
 	Loading,
@@ -207,16 +208,7 @@ export default function Traffic( {
 									<b>{ row.method }</b> { row.path }
 								</span>
 								<span>
-									<span
-										className="ts-tag"
-										style={ {
-											background: 'var(--ts-dv)',
-											color: 'var(--ts-t2)',
-										} }
-									>
-										{ boot.types[ row.type ]?.label ||
-											row.type }
-									</span>
+									<AttackTag type={ row.type } />
 								</span>
 								<span>
 									<span className="ts-cell-ip">
@@ -280,7 +272,6 @@ export default function Traffic( {
 						<button
 							type="button"
 							className="ts-button"
-							style={ { marginTop: 10 } }
 							onClick={ reset }
 						>
 							{ __( 'Reset filters', 'teksecurity' ) }

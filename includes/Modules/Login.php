@@ -118,7 +118,15 @@ class Login {
 		}
 
 		$code = is_wp_error( $error ) ? $error->get_error_code() : '';
-		if ( in_array( $code, array( 'teksecurity_locked_out', 'teksecurity_blocked_username' ), true ) ) {
+		// A user being sent to the second step has not failed anything yet, and
+		// wrong codes are counted by TwoFactor::register_failure() instead.
+		$not_a_failure = array(
+			'teksecurity_locked_out',
+			'teksecurity_blocked_username',
+			'teksecurity_2fa_required',
+		);
+
+		if ( in_array( $code, $not_a_failure, true ) ) {
 			return;
 		}
 

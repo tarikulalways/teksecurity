@@ -14,6 +14,7 @@ use TekSecurity\Modules\Hardening;
 use TekSecurity\Modules\Integrity;
 use TekSecurity\Modules\Login;
 use TekSecurity\Modules\TwoFactor;
+use TekSecurity\Modules\TwoFactorScreen;
 use TekSecurity\Modules\Vulnerability;
 
 defined( 'ABSPATH' ) || exit;
@@ -82,6 +83,7 @@ final class Plugin {
 			'hardening'     => new Hardening(),
 			'login'         => new Login(),
 			'twofactor'     => new TwoFactor(),
+			'twofactorscreen' => new TwoFactorScreen(),
 			'vulnerability' => new Vulnerability(),
 			'integrity'     => new Integrity(),
 			'alerts'        => new Alerts(),

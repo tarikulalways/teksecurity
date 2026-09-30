@@ -2,53 +2,51 @@
  * IP lists screen.
  */
 
-import { useEffect, useState } from '@wordpress/element';
+import { useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 import { api } from '../lib/api';
+import { useResource } from '../lib/useResource';
 import { Loading } from '../components/primitives';
 
 /**
  * The blocklist and the allowlist.
  *
- * @param {Object}   props       Component props.
- * @param {Function} props.toast Show a toast.
+ * @param {Object}   props         Component props.
+ * @param {Function} props.toast   Show a toast.
+ * @param {Function} props.refresh Refresh the shell's badges.
  * @return {JSX.Element} The screen.
  */
-export default function Ips( { toast } ) {
-	const [ data, setData ] = useState( null );
+export default function Ips( { toast, refresh } ) {
+	const { data, mutate } = useResource( '/ips', { toast, refresh } );
 	const [ tab, setTab ] = useState( 'block' );
 	const [ ip, setIp ] = useState( '' );
 	const [ note, setNote ] = useState( '' );
 	const [ error, setError ] = useState( '' );
 
-	useEffect( () => {
-		api.get( '/ips' )
-			.then( setData )
-			.catch( ( loadError ) => toast( loadError.message, 'error' ) );
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [] );
-
 	if ( ! data ) {
 		return <Loading />;
 	}
 
+	// A rejected address is explained beside the field, not in a toast that
+	// disappears before the reason has been read.
 	const add = async () => {
 		try {
-			setData( await api.post( '/ips', { list: tab, ip, note } ) );
-			toast(
-				tab === 'block'
-					? sprintf(
-							/* translators: %s: IP address that was added to the blocklist. */
-							__( '%s blocked', 'teksecurity' ),
-							ip
-					  )
-					: sprintf(
-							/* translators: %s: IP address that was added to the allowlist. */
-							__( '%s allowed', 'teksecurity' ),
-							ip
-					  )
-			);
+			await mutate( () => api.post( '/ips', { list: tab, ip, note } ), {
+				inline: true,
+				message:
+					tab === 'block'
+						? sprintf(
+								/* translators: %s: IP address that was added to the blocklist. */
+								__( '%s blocked', 'teksecurity' ),
+								ip
+						  )
+						: sprintf(
+								/* translators: %s: IP address that was added to the allowlist. */
+								__( '%s allowed', 'teksecurity' ),
+								ip
+						  ),
+			} );
 			setIp( '' );
 			setNote( '' );
 			setError( '' );
@@ -57,20 +55,14 @@ export default function Ips( { toast } ) {
 		}
 	};
 
-	const remove = async ( row ) => {
-		try {
-			setData( await api.del( `/ips/${ row.id }` ) );
-			toast(
-				sprintf(
-					/* translators: %s: IP address. */
-					__( '%s removed', 'teksecurity' ),
-					row.ip
-				)
-			);
-		} catch ( removeError ) {
-			toast( removeError.message, 'error' );
-		}
-	};
+	const remove = ( row ) =>
+		mutate( () => api.del( `/ips/${ row.id }` ), {
+			message: sprintf(
+				/* translators: %s: IP address. */
+				__( '%s removed', 'teksecurity' ),
+				row.ip
+			),
+		} );
 
 	const rows = data[ tab ];
 
@@ -99,7 +91,7 @@ export default function Ips( { toast } ) {
 			</div>
 
 			<div className="ts-inline-form">
-				<div style={ { flex: 1, maxWidth: 280 } }>
+				<div className="ts-inline-form__field">
 					<input
 						className={ `ts-input${
 							error ? ' ts-input--error' : ''
@@ -109,7 +101,10 @@ export default function Ips( { toast } ) {
 							'IP or range, e.g. 203.0.113.0/24',
 							'teksecurity'
 						) }
-						aria-label={ __( 'IP address or range', 'teksecurity' ) }
+						aria-label={ __(
+							'IP address or range',
+							'teksecurity'
+						) }
 						onChange={ ( event ) => {
 							setIp( event.target.value );
 							setError( '' );
@@ -121,17 +116,13 @@ export default function Ips( { toast } ) {
 						} }
 					/>
 					{ error && (
-						<div
-							className="ts-hint ts-hint--error"
-							style={ { marginTop: 4 } }
-						>
+						<div className="ts-hint ts-hint--error ts-inline-error">
 							{ error }
 						</div>
 					) }
 				</div>
 				<input
-					className="ts-input"
-					style={ { flex: 1, maxWidth: 260 } }
+					className="ts-input ts-inline-form__field"
 					value={ note }
 					placeholder={ __( 'Note (optional)', 'teksecurity' ) }
 					aria-label={ __( 'Note', 'teksecurity' ) }
@@ -157,7 +148,10 @@ export default function Ips( { toast } ) {
 				{ rows.length ? (
 					rows.map( ( row ) => (
 						<div className="ts-row" key={ row.id }>
-							<span className="ts-mono" style={ { minWidth: 150 } }>
+							<span
+								className="ts-mono"
+								style={ { minWidth: 150 } }
+							>
 								{ row.ip }
 							</span>
 							<span className="ts-row__grow ts-row__desc">

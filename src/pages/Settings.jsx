@@ -9,15 +9,70 @@ import { api } from '../lib/api';
 import { timeAgo } from '../lib/format';
 import {
 	Card,
+	EmptyState,
 	Loading,
 	Segmented,
+	SelectField,
 	SettingRow,
 	Switch,
+	TextField,
 } from '../components/primitives';
 import Icon from '../components/Icon';
 
 /**
- * Alerts, data retention and the integrity scan.
+ * The sections in the rail, in order.
+ *
+ * `group` names the slice of the draft a section edits, so the rail can mark
+ * which sections are holding unsaved changes. Sections that only run actions
+ * have no group.
+ *
+ * @return {Array} Section descriptors.
+ */
+function sections() {
+	return [
+		{
+			key: 'alerts',
+			group: 'alerts',
+			icon: 'envelope-simple',
+			label: __( 'Alerts', 'teksecurity' ),
+			desc: __(
+				'Who hears about an attack, and how often.',
+				'teksecurity'
+			),
+		},
+		{
+			key: 'data',
+			group: 'data',
+			icon: 'database',
+			label: __( 'Data', 'teksecurity' ),
+			desc: __(
+				'How long the log is kept and how visitor IPs are read.',
+				'teksecurity'
+			),
+		},
+		{
+			key: 'scans',
+			icon: 'magnifying-glass',
+			label: __( 'Scans', 'teksecurity' ),
+			desc: __(
+				'Core file integrity and plugin vulnerability checks.',
+				'teksecurity'
+			),
+		},
+		{
+			key: 'shortcodes',
+			icon: 'code',
+			label: __( 'Shortcodes', 'teksecurity' ),
+			desc: __(
+				'Drop TekSecurity screens into your own pages.',
+				'teksecurity'
+			),
+		},
+	];
+}
+
+/**
+ * Alerts, data retention, scans and shortcodes.
  *
  * @param {Object}   props            Component props.
  * @param {boolean}  props.isAdv      Whether advanced view is on.
@@ -29,6 +84,7 @@ export default function Settings( { isAdv, toast, openWizard } ) {
 	const [ saved, setSaved ] = useState( null );
 	const [ draft, setDraft ] = useState( null );
 	const [ busy, setBusy ] = useState( '' );
+	const [ tab, setTab ] = useState( 'alerts' );
 
 	useEffect( () => {
 		api.get( '/settings' )
@@ -47,6 +103,16 @@ export default function Settings( { isAdv, toast, openWizard } ) {
 	const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test( draft.alerts.email );
 	const emailBad = ! emailValid && draft.alerts.level !== 'off';
 	const dirty = JSON.stringify( draft ) !== JSON.stringify( saved );
+
+	/**
+	 * Whether one section is holding unsaved changes.
+	 *
+	 * @param {string} group Draft key the section edits.
+	 * @return {boolean} Whether it differs from what is saved.
+	 */
+	const groupDirty = ( group ) =>
+		!! group &&
+		JSON.stringify( draft[ group ] ) !== JSON.stringify( saved[ group ] );
 
 	const patch = ( group, values ) =>
 		setDraft( { ...draft, [ group ]: { ...draft[ group ], ...values } } );
@@ -78,38 +144,29 @@ export default function Settings( { isAdv, toast, openWizard } ) {
 		}
 	};
 
-	return (
-		<div className="ts-stack">
+	const panels = {
+		alerts: (
 			<Card title={ __( 'Alerts', 'teksecurity' ) } flush>
 				<div className="ts-card__body">
-					<label className="ts-field" style={ { maxWidth: 380 } }>
-						{ __( 'Alert email', 'teksecurity' ) }
-						<input
-							type="email"
-							className={ `ts-input${
-								emailBad ? ' ts-input--error' : ''
-							}` }
-							value={ draft.alerts.email }
-							onChange={ ( event ) =>
-								patch( 'alerts', { email: event.target.value } )
-							}
-						/>
-						<span
-							className={ `ts-hint${
-								emailBad ? ' ts-hint--error' : ''
-							}` }
-						>
-							{ emailBad
+					<TextField
+						narrow
+						type="email"
+						label={ __( 'Alert email', 'teksecurity' ) }
+						value={ draft.alerts.email }
+						onChange={ ( email ) => patch( 'alerts', { email } ) }
+						hint={ __(
+							'Alerts are sent from this site’s address.',
+							'teksecurity'
+						) }
+						error={
+							emailBad
 								? __(
 										'Enter a valid email address, or choose Nothing below.',
 										'teksecurity'
 								  )
-								: __(
-										'Alerts are sent from this site’s address.',
-										'teksecurity'
-								  ) }
-						</span>
-					</label>
+								: ''
+						}
+					/>
 				</div>
 
 				<SettingRow title={ __( 'Send an email for', 'teksecurity' ) }>
@@ -142,74 +199,60 @@ export default function Settings( { isAdv, toast, openWizard } ) {
 					/>
 				</SettingRow>
 			</Card>
+		),
 
+		data: (
 			<Card title={ __( 'Data', 'teksecurity' ) }>
 				<div className="ts-field-grid">
-					<label className="ts-field">
-						{ __( 'Keep traffic log for', 'teksecurity' ) }
-						<select
-							className="ts-select"
-							value={ draft.data.retention }
-							onChange={ ( event ) =>
-								patch( 'data', {
-									retention: event.target.value,
-								} )
-							}
-						>
-							<option value="7">
-								{ __( '7 days', 'teksecurity' ) }
-							</option>
-							<option value="30">
-								{ __( '30 days', 'teksecurity' ) }
-							</option>
-							<option value="90">
-								{ __( '90 days', 'teksecurity' ) }
-							</option>
-						</select>
-					</label>
+					<SelectField
+						label={ __( 'Keep traffic log for', 'teksecurity' ) }
+						value={ draft.data.retention }
+						onChange={ ( retention ) =>
+							patch( 'data', { retention } )
+						}
+						options={ [
+							[ '7', __( '7 days', 'teksecurity' ) ],
+							[ '30', __( '30 days', 'teksecurity' ) ],
+							[ '90', __( '90 days', 'teksecurity' ) ],
+						] }
+					/>
 
 					{ isAdv && (
-						<label className="ts-field">
-							{ __( 'Visitor IP source', 'teksecurity' ) }
-							<select
-								className="ts-select"
-								value={ draft.data.proxy }
-								onChange={ ( event ) =>
-									patch( 'data', {
-										proxy: event.target.value,
-									} )
-								}
-							>
-								<option value="direct">
-									{ __(
-										'REMOTE_ADDR (direct)',
-										'teksecurity'
-									) }
-								</option>
-								<option value="cloudflare">
-									{ __(
+						<SelectField
+							label={ __( 'Visitor IP source', 'teksecurity' ) }
+							value={ draft.data.proxy }
+							onChange={ ( proxy ) => patch( 'data', { proxy } ) }
+							hint={ __(
+								'Wrong source makes every visitor look like one IP.',
+								'teksecurity'
+							) }
+							options={ [
+								[
+									'direct',
+									__( 'REMOTE_ADDR (direct)', 'teksecurity' ),
+								],
+								[
+									'cloudflare',
+									__(
 										'CF-Connecting-IP (Cloudflare)',
 										'teksecurity'
-									) }
-								</option>
-								<option value="proxy">
-									{ __(
+									),
+								],
+								[
+									'proxy',
+									__(
 										'X-Forwarded-For (other proxy)',
 										'teksecurity'
-									) }
-								</option>
-							</select>
-							<span className="ts-hint">
-								{ __(
-									'Wrong source makes every visitor look like one IP.',
-									'teksecurity'
-								) }
-							</span>
-						</label>
+									),
+								],
+							] }
+						/>
 					) }
 				</div>
 			</Card>
+		),
 
+		scans: (
 			<Card title={ __( 'Scans', 'teksecurity' ) } flush>
 				<SettingRow
 					title={ __( 'Core file integrity', 'teksecurity' ) }
@@ -272,42 +315,89 @@ export default function Settings( { isAdv, toast, openWizard } ) {
 					</button>
 				</SettingRow>
 			</Card>
+		),
 
-			<div
-				style={ {
-					display: 'flex',
-					justifyContent: 'space-between',
-					gap: 12,
-					flexWrap: 'wrap',
-				} }
+		shortcodes: (
+			<EmptyState
+				icon="code"
+				title={ __( 'No shortcodes yet', 'teksecurity' ) }
+				desc={ __(
+					'TekSecurity does not add any shortcodes at the moment. When the two-factor sign-in screen can be placed on your own page, its shortcode will be listed here to copy.',
+					'teksecurity'
+				) }
+			/>
+		),
+	};
+
+	return (
+		<div className="ts-settings">
+			<nav
+				className="ts-settingsnav"
+				aria-label={ __( 'Settings sections', 'teksecurity' ) }
 			>
-				<button
-					type="button"
-					className="ts-button"
-					onClick={ openWizard }
-				>
-					<Icon name="magic-wand" />
-					{ __( 'Run setup again', 'teksecurity' ) }
-				</button>
+				{ sections().map( ( section ) => (
+					<button
+						key={ section.key }
+						type="button"
+						aria-current={
+							tab === section.key ? 'page' : undefined
+						}
+						className={ `ts-settingsnav__item${
+							tab === section.key ? ' is-active' : ''
+						}` }
+						onClick={ () => setTab( section.key ) }
+					>
+						<Icon name={ section.icon } size={ 17 } />
+						<span className="ts-settingsnav__text">
+							<span className="ts-settingsnav__label">
+								{ section.label }
+							</span>
+							<span className="ts-settingsnav__desc">
+								{ section.desc }
+							</span>
+						</span>
+						{ groupDirty( section.group ) && (
+							<span
+								className="ts-settingsnav__dot"
+								title={ __( 'Unsaved changes', 'teksecurity' ) }
+							/>
+						) }
+					</button>
+				) ) }
+			</nav>
 
-				<div style={ { display: 'flex', gap: 8 } }>
-					{ dirty && (
-						<button
-							type="button"
-							className="ts-button"
-							onClick={ () => setDraft( saved ) }
-						>
-							{ __( 'Discard', 'teksecurity' ) }
-						</button>
-					) }
+			<div className="ts-settings__panel">
+				{ panels[ tab ] }
+
+				<div className="ts-footer-bar">
 					<button
 						type="button"
-						className="ts-button ts-button--primary"
-						disabled={ ! dirty || emailBad }
-						onClick={ save }
+						className="ts-button"
+						onClick={ openWizard }
 					>
-						{ __( 'Save settings', 'teksecurity' ) }
+						<Icon name="magic-wand" />
+						{ __( 'Run setup again', 'teksecurity' ) }
 					</button>
+
+					<div className="ts-actions">
+						{ dirty && (
+							<button
+								type="button"
+								className="ts-button"
+								onClick={ () => setDraft( saved ) }
+							>
+								{ __( 'Discard', 'teksecurity' ) }
+							</button>
+						) }
+						<button
+							type="button"
+							className="ts-button ts-button--primary"
+							disabled={ ! dirty || emailBad }
+							onClick={ save }
+						>
+							{ __( 'Save settings', 'teksecurity' ) }
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>

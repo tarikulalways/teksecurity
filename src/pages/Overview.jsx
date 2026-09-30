@@ -7,7 +7,13 @@ import { __, _n, sprintf } from '@wordpress/i18n';
 
 import { api } from '../lib/api';
 import { dayLabel, timeAgo } from '../lib/format';
-import { Card, Loading, StatusPill, toneStyle } from '../components/primitives';
+import {
+	AttackTag,
+	Card,
+	Loading,
+	StatusPill,
+	toneStyle,
+} from '../components/primitives';
 import Icon from '../components/Icon';
 
 /**
@@ -226,7 +232,11 @@ export default function Overview( { go, openEvent, toast } ) {
 				} }
 			>
 				<div className="ts-banner__icon">
-					<Icon weight="fill" size={ 20 } name={ banner.icon.replace( 'ph-', '' ) } />
+					<Icon
+						weight="fill"
+						size={ 20 }
+						name={ banner.icon.replace( 'ph-', '' ) }
+					/>
 				</div>
 				<div className="ts-row__grow">
 					<div className="ts-banner__title">{ banner.title }</div>
@@ -270,9 +280,7 @@ export default function Overview( { go, openEvent, toast } ) {
 									</div>
 									<div
 										className={ `ts-chart__bar${
-											today
-												? ' ts-chart__bar--today'
-												: ''
+											today ? ' ts-chart__bar--today' : ''
 										}` }
 										style={ {
 											height: `${ Math.round(
@@ -374,25 +382,22 @@ export default function Overview( { go, openEvent, toast } ) {
 								className="ts-list-button"
 								onClick={ () => openEvent( event.id ) }
 							>
-								<span className="ts-tag" style={ toneStyle( 'bad' ) }>
-									{ window.tekSecurityData.types[ event.type ]
-										?.label || event.type }
-								</span>
+								<AttackTag type={ event.type } />
 								<span className="ts-list-button__path">
 									{ event.method } { event.path }
 								</span>
 								<span className="ts-list-button__time">
 									{ timeAgo( event.createdAt ) }
 								</span>
-								<Icon name="caret-right" className="ts-list-button__chevron" />
+								<Icon
+									name="caret-right"
+									className="ts-list-button__chevron"
+								/>
 							</button>
 						) )
 					) : (
 						<div className="ts-inline-empty">
-							{ __(
-								'No attacks recorded yet.',
-								'teksecurity'
-							) }
+							{ __( 'No attacks recorded yet.', 'teksecurity' ) }
 						</div>
 					) }
 				</Card>
@@ -405,8 +410,13 @@ export default function Overview( { go, openEvent, toast } ) {
 							className="ts-list-button"
 							onClick={ () => go( module.page ) }
 						>
-							<Icon name={ module.icon.replace( 'ph-', '' ) } size={ 16 } />
-							<span className="ts-row__grow">{ module.name }</span>
+							<Icon
+								name={ module.icon.replace( 'ph-', '' ) }
+								size={ 16 }
+							/>
+							<span className="ts-row__grow">
+								{ module.name }
+							</span>
 							<StatusPill
 								tone={ module.tone }
 								label={ module.status }

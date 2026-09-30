@@ -2,10 +2,9 @@
  * Rate limiting screen.
  */
 
-import { useEffect, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
-import { api } from '../lib/api';
+import { useResource } from '../lib/useResource';
 import {
 	Card,
 	Loading,
@@ -26,31 +25,11 @@ import {
  * @return {JSX.Element} The screen.
  */
 export default function RateLimit( { isAdv, toast, refresh } ) {
-	const [ data, setData ] = useState( null );
-
-	useEffect( () => {
-		api.get( '/ratelimit' )
-			.then( setData )
-			.catch( ( error ) => toast( error.message, 'error' ) );
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [] );
+	const { data, save } = useResource( '/ratelimit', { toast, refresh } );
 
 	if ( ! data ) {
 		return <Loading />;
 	}
-
-	const save = async ( payload, message ) => {
-		try {
-			setData( await api.post( '/ratelimit', payload ) );
-			refresh();
-
-			if ( message ) {
-				toast( message );
-			}
-		} catch ( error ) {
-			toast( error.message, 'error' );
-		}
-	};
 
 	const patchRule = ( key, patch ) =>
 		save( { rules: [ { key, ...patch } ] } );
@@ -58,14 +37,8 @@ export default function RateLimit( { isAdv, toast, refresh } ) {
 	return (
 		<div className="ts-stack">
 			<ModuleHeader
-				icon="ph-gauge"
+				icon="gauge"
 				name={ __( 'Rate limiting', 'teksecurity' ) }
-				status={
-					data.enabled
-						? __( 'Active', 'teksecurity' )
-						: __( 'Off', 'teksecurity' )
-				}
-				tone={ data.enabled ? 'ok' : 'bad' }
 				stopped={ data.stopped }
 				enabled={ data.enabled }
 				onToggle={ ( enabled ) =>
@@ -136,18 +109,11 @@ export default function RateLimit( { isAdv, toast, refresh } ) {
 							</div>
 
 							{ editable ? (
-								<div
-									style={ {
-										display: 'flex',
-										alignItems: 'center',
-										gap: 6,
-									} }
-								>
+								<div className="ts-limit">
 									<input
 										type="number"
 										min="1"
 										className="ts-input"
-										style={ { width: 86 } }
 										value={ rule.limit }
 										aria-label={ sprintf(
 											/* translators: %s: rule name. */
@@ -218,7 +184,10 @@ export default function RateLimit( { isAdv, toast, refresh } ) {
 								'throttle',
 								__( 'Slow down (429)', 'teksecurity' ),
 							],
-							[ 'block', __( 'Block for 10 min', 'teksecurity' ) ],
+							[
+								'block',
+								__( 'Block for 10 min', 'teksecurity' ),
+							],
 						] }
 						onChange={ ( action ) => save( { action } ) }
 					/>

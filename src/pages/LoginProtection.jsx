@@ -2,14 +2,15 @@
  * Login protection screen.
  */
 
-import { useEffect, useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
 
 import { api } from '../lib/api';
+import { useResource } from '../lib/useResource';
 import {
 	Card,
 	Loading,
 	ModuleHeader,
+	SelectField,
 	SettingRow,
 	Switch,
 } from '../components/primitives';
@@ -25,60 +26,27 @@ import Icon from '../components/Icon';
  * @return {JSX.Element} The screen.
  */
 export default function LoginProtection( { isAdv, toast, refresh } ) {
-	const [ data, setData ] = useState( null );
-
-	useEffect( () => {
-		api.get( '/login' )
-			.then( setData )
-			.catch( ( error ) => toast( error.message, 'error' ) );
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [] );
+	const { data, save, mutate } = useResource( '/login', { toast, refresh } );
 
 	if ( ! data ) {
 		return <Loading />;
 	}
 
-	const save = async ( payload, message ) => {
-		try {
-			setData( await api.post( '/login', payload ) );
-			refresh();
-
-			if ( message ) {
-				toast( message );
-			}
-		} catch ( error ) {
-			toast( error.message, 'error' );
-		}
-	};
-
-	const unlock = async ( row ) => {
-		try {
-			const next = await api.del( `/login/lockouts/${ row.id }` );
-			setData( { ...data, lockouts: next.lockouts } );
-			refresh();
-			toast(
-				sprintf(
-					/* translators: %s: IP address. */
-					__( '%s unlocked', 'teksecurity' ),
-					row.ip
-				)
-			);
-		} catch ( error ) {
-			toast( error.message, 'error' );
-		}
-	};
+	const unlock = ( row ) =>
+		mutate( () => api.del( `/login/lockouts/${ row.id }` ), {
+			merge: true,
+			message: sprintf(
+				/* translators: %s: IP address. */
+				__( '%s unlocked', 'teksecurity' ),
+				row.ip
+			),
+		} );
 
 	return (
 		<div className="ts-stack">
 			<ModuleHeader
-				icon="ph-lock-key"
+				icon="lock-key"
 				name={ __( 'Brute-force protection', 'teksecurity' ) }
-				status={
-					data.enabled
-						? __( 'Active', 'teksecurity' )
-						: __( 'Off', 'teksecurity' )
-				}
-				tone={ data.enabled ? 'ok' : 'bad' }
 				stopped={ data.stopped }
 				enabled={ data.enabled }
 				onToggle={ ( enabled ) =>
@@ -134,51 +102,29 @@ export default function LoginProtection( { isAdv, toast, refresh } ) {
 
 				<div className="ts-row">
 					<div className="ts-field-grid ts-row__grow">
-						<label className="ts-field">
-							{ __( 'Lockout duration', 'teksecurity' ) }
-							<select
-								className="ts-select"
-								value={ data.lockout }
-								onChange={ ( event ) =>
-									save( { lockout: event.target.value } )
-								}
-							>
-								<option value="15">
-									{ __( '15 minutes', 'teksecurity' ) }
-								</option>
-								<option value="30">
-									{ __( '30 minutes', 'teksecurity' ) }
-								</option>
-								<option value="60">
-									{ __( '1 hour', 'teksecurity' ) }
-								</option>
-								<option value="1440">
-									{ __( '24 hours', 'teksecurity' ) }
-								</option>
-							</select>
-						</label>
+						<SelectField
+							label={ __( 'Lockout duration', 'teksecurity' ) }
+							value={ data.lockout }
+							onChange={ ( lockout ) => save( { lockout } ) }
+							options={ [
+								[ '15', __( '15 minutes', 'teksecurity' ) ],
+								[ '30', __( '30 minutes', 'teksecurity' ) ],
+								[ '60', __( '1 hour', 'teksecurity' ) ],
+								[ '1440', __( '24 hours', 'teksecurity' ) ],
+							] }
+						/>
 
 						{ isAdv && (
-							<label className="ts-field">
-								{ __( 'Counting window', 'teksecurity' ) }
-								<select
-									className="ts-select"
-									value={ data.window }
-									onChange={ ( event ) =>
-										save( { window: event.target.value } )
-									}
-								>
-									<option value="5">
-										{ __( '5 minutes', 'teksecurity' ) }
-									</option>
-									<option value="15">
-										{ __( '15 minutes', 'teksecurity' ) }
-									</option>
-									<option value="60">
-										{ __( '1 hour', 'teksecurity' ) }
-									</option>
-								</select>
-							</label>
+							<SelectField
+								label={ __( 'Counting window', 'teksecurity' ) }
+								value={ data.window }
+								onChange={ ( window ) => save( { window } ) }
+								options={ [
+									[ '5', __( '5 minutes', 'teksecurity' ) ],
+									[ '15', __( '15 minutes', 'teksecurity' ) ],
+									[ '60', __( '1 hour', 'teksecurity' ) ],
+								] }
+							/>
 						) }
 					</div>
 				</div>
@@ -223,7 +169,12 @@ export default function LoginProtection( { isAdv, toast, refresh } ) {
 				title={ __( 'Locked out now', 'teksecurity' ) }
 				meta={ sprintf(
 					/* translators: %d: number of locked out addresses. */
-					_n( '%d IP', '%d IPs', data.lockouts.length, 'teksecurity' ),
+					_n(
+						'%d IP',
+						'%d IPs',
+						data.lockouts.length,
+						'teksecurity'
+					),
 					data.lockouts.length
 				) }
 				flush

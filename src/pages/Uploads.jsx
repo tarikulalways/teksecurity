@@ -2,10 +2,11 @@
  * File uploads screen.
  */
 
-import { useEffect, useState } from '@wordpress/element';
+import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 import { api } from '../lib/api';
+import { useResource } from '../lib/useResource';
 import { timeAgo } from '../lib/format';
 import {
 	Card,
@@ -27,37 +28,27 @@ import Icon from '../components/Icon';
  * @return {JSX.Element} The screen.
  */
 export default function Uploads( { isAdv, openEvent, toast, refresh } ) {
-	const [ data, setData ] = useState( null );
+	const { data, save, mutate } = useResource( '/uploads', {
+		toast,
+		refresh,
+	} );
 	const [ newExt, setNewExt ] = useState( '' );
 	const [ extError, setExtError ] = useState( '' );
-
-	useEffect( () => {
-		api.get( '/uploads' )
-			.then( setData )
-			.catch( ( error ) => toast( error.message, 'error' ) );
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [] );
 
 	if ( ! data ) {
 		return <Loading />;
 	}
 
-	const save = async ( payload, message ) => {
-		try {
-			setData( await api.post( '/uploads', payload ) );
-			refresh();
-
-			if ( message ) {
-				toast( message );
-			}
-		} catch ( error ) {
-			toast( error.message, 'error' );
-		}
-	};
-
+	// The extension field reports its own errors beside the input, so this one
+	// opts out of the toast.
 	const addExtension = async () => {
 		try {
-			setData( await api.post( '/uploads/extensions', { ext: newExt } ) );
+			await mutate(
+				() => api.post( '/uploads/extensions', { ext: newExt } ),
+				{
+					inline: true,
+				}
+			);
 			setNewExt( '' );
 			setExtError( '' );
 		} catch ( error ) {
@@ -65,25 +56,14 @@ export default function Uploads( { isAdv, openEvent, toast, refresh } ) {
 		}
 	};
 
-	const removeExtension = async ( ext ) => {
-		try {
-			setData( await api.del( '/uploads/extensions', { ext } ) );
-		} catch ( error ) {
-			toast( error.message, 'error' );
-		}
-	};
+	const removeExtension = ( ext ) =>
+		mutate( () => api.del( '/uploads/extensions', { ext } ) );
 
 	return (
 		<div className="ts-stack">
 			<ModuleHeader
-				icon="ph-upload-simple"
+				icon="upload-simple"
 				name={ __( 'File-upload protection', 'teksecurity' ) }
-				status={
-					data.enabled
-						? __( 'Active', 'teksecurity' )
-						: __( 'Off', 'teksecurity' )
-				}
-				tone={ data.enabled ? 'ok' : 'bad' }
 				stopped={ data.stopped }
 				enabled={ data.enabled }
 				onToggle={ ( enabled ) =>
@@ -118,9 +98,7 @@ export default function Uploads( { isAdv, openEvent, toast, refresh } ) {
 									<button
 										type="button"
 										aria-label={ `Remove .${ ext }` }
-										onClick={ () =>
-											removeExtension( ext )
-										}
+										onClick={ () => removeExtension( ext ) }
 									>
 										<Icon name="x" weight="bold" />
 									</button>
@@ -136,7 +114,6 @@ export default function Uploads( { isAdv, openEvent, toast, refresh } ) {
 									className={ `ts-input${
 										extError ? ' ts-input--error' : ''
 									}` }
-									style={ { maxWidth: 240 } }
 									value={ newExt }
 									placeholder={ __(
 										'Add extension, e.g. pht',
@@ -165,10 +142,7 @@ export default function Uploads( { isAdv, openEvent, toast, refresh } ) {
 								</button>
 							</div>
 							{ extError && (
-								<div
-									className="ts-hint ts-hint--error"
-									style={ { marginTop: 4 } }
-								>
+								<div className="ts-hint ts-hint--error ts-inline-error">
 									{ extError }
 								</div>
 							) }
@@ -225,7 +199,10 @@ export default function Uploads( { isAdv, openEvent, toast, refresh } ) {
 				</SettingRow>
 			</Card>
 
-			<Card title={ __( 'Recently blocked uploads', 'teksecurity' ) } flush>
+			<Card
+				title={ __( 'Recently blocked uploads', 'teksecurity' ) }
+				flush
+			>
 				{ data.recent.length ? (
 					data.recent.map( ( event ) => (
 						<button
@@ -234,22 +211,24 @@ export default function Uploads( { isAdv, openEvent, toast, refresh } ) {
 							className="ts-list-button"
 							onClick={ () => openEvent( event.id ) }
 						>
-							<Icon name="file-x" size={ 17 } style={ { color: 'var(--ts-bad-dot)' } } />
+							<Icon
+								name="file-x"
+								size={ 17 }
+								style={ { color: 'var(--ts-bad-dot)' } }
+							/>
 							<span className="ts-row__grow">
-								<span
-									style={ {
-										display: 'block',
-										fontSize: 13,
-										color: 'var(--ts-tx)',
-									} }
-								>
+								<span className="ts-list-button__primary">
 									{ event.payload }
 								</span>
 								<span className="ts-list-button__time">
-									{ event.ip } · { timeAgo( event.createdAt ) }
+									{ event.ip } ·{ ' ' }
+									{ timeAgo( event.createdAt ) }
 								</span>
 							</span>
-							<Icon name="caret-right" className="ts-list-button__chevron" />
+							<Icon
+								name="caret-right"
+								className="ts-list-button__chevron"
+							/>
 						</button>
 					) )
 				) : (

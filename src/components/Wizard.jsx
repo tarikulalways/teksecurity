@@ -6,7 +6,7 @@ import { Fragment, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 import { api, boot } from '../lib/api';
-import { RadioCards, Segmented } from './primitives';
+import { RadioCards, Segmented, TextField } from './primitives';
 import Icon from './Icon';
 
 /**
@@ -231,7 +231,7 @@ export default function Wizard( { initial, onFinish, toast } ) {
 				aria-modal="true"
 				aria-label={ current.title }
 			>
-				<div>
+				<div className="ts-wizard__head">
 					<div className="ts-wizard__mark">
 						<Icon name="shield-check" weight="fill" />
 					</div>
@@ -271,41 +271,28 @@ export default function Wizard( { initial, onFinish, toast } ) {
 
 				{ step === 3 && (
 					<div className="ts-stack">
-						<label className="ts-field">
-							{ __( 'Alert email', 'teksecurity' ) }
-							<input
-								type="email"
-								className={ `ts-input${
-									emailError ? ' ts-input--error' : ''
-								}` }
-								value={ answers.email }
-								placeholder="you@example.com"
-								onChange={ ( event ) =>
-									set( { email: event.target.value } )
-								}
-							/>
-							<span
-								className={ `ts-hint${
-									emailError ? ' ts-hint--error' : ''
-								}` }
-							>
-								{ emailError
+						<TextField
+							type="email"
+							label={ __( 'Alert email', 'teksecurity' ) }
+							value={ answers.email }
+							placeholder="you@example.com"
+							onChange={ ( email ) => set( { email } ) }
+							hint={ __(
+								'Usually the site administrator’s address.',
+								'teksecurity'
+							) }
+							error={
+								emailError
 									? __(
 											'Enter a valid email address, or choose Nothing.',
 											'teksecurity'
 									  )
-									: __(
-											'Usually the site administrator’s address.',
-											'teksecurity'
-									  ) }
-							</span>
-						</label>
+									: ''
+							}
+						/>
 
 						<div>
-							<div
-								className="ts-field"
-								style={ { marginBottom: 6 } }
-							>
+							<div className="ts-label">
 								{ __( 'Send an email for', 'teksecurity' ) }
 							</div>
 							<Segmented

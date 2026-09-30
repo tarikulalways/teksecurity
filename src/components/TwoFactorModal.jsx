@@ -7,6 +7,7 @@ import { __, sprintf } from '@wordpress/i18n';
 import QRCode from 'qrcode';
 
 import { api } from '../lib/api';
+import { TextField } from './primitives';
 import Icon from './Icon';
 
 /**
@@ -63,7 +64,10 @@ function QrCode( { uri } ) {
 
 	return (
 		<div className="ts-qr">
-			<img src={ src } alt={ __( 'Two-factor QR code', 'teksecurity' ) } />
+			<img
+				src={ src }
+				alt={ __( 'Two-factor QR code', 'teksecurity' ) }
+			/>
 		</div>
 	);
 }
@@ -217,47 +221,32 @@ export default function TwoFactorModal( { setup, onClose, onDone, toast } ) {
 					) }
 
 					{ step === 2 && (
-						<label className="ts-field">
-							{ __(
+						<TextField
+							label={ __(
 								'6-digit code from your app',
 								'teksecurity'
 							) }
-							<input
-								className={ `ts-input${
-									error ? ' ts-input--error' : ''
-								}` }
-								inputMode="numeric"
-								autoComplete="one-time-code"
-								placeholder="000000"
-								value={ code }
+							value={ code }
+							placeholder="000000"
+							error={ error }
+							hint={ __(
+								'The code refreshes every 30 seconds.',
+								'teksecurity'
+							) }
+							onEnter={ verify }
+							onChange={ ( next ) => {
+								setCode(
+									next.replace( /\D/g, '' ).slice( 0, 6 )
+								);
+								setError( '' );
+							} }
+							inputProps={ {
+								inputMode: 'numeric',
+								autoComplete: 'one-time-code',
 								// eslint-disable-next-line jsx-a11y/no-autofocus
-								autoFocus
-								onChange={ ( event ) => {
-									setCode(
-										event.target.value
-											.replace( /\D/g, '' )
-											.slice( 0, 6 )
-									);
-									setError( '' );
-								} }
-								onKeyDown={ ( event ) => {
-									if ( event.key === 'Enter' ) {
-										verify();
-									}
-								} }
-							/>
-							<span
-								className={ `ts-hint${
-									error ? ' ts-hint--error' : ''
-								}` }
-							>
-								{ error ||
-									__(
-										'The code refreshes every 30 seconds.',
-										'teksecurity'
-									) }
-							</span>
-						</label>
+								autoFocus: true,
+							} }
+						/>
 					) }
 
 					{ step === 3 && (

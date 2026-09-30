@@ -197,11 +197,7 @@ export default function App() {
 		overview: <Overview key={ nonce } { ...shared } />,
 		firewall: <Firewall { ...shared } />,
 		traffic: (
-			<Traffic
-				{ ...shared }
-				filters={ filters }
-				openId={ drawerId }
-			/>
+			<Traffic { ...shared } filters={ filters } openId={ drawerId } />
 		),
 		login: <LoginProtection { ...shared } />,
 		twofa: <TwoFactor { ...shared } />,
@@ -302,7 +298,14 @@ export default function App() {
 					}` }
 					role="status"
 				>
-					<Icon weight="fill" name={ toast.kind === 'error' ? 'warning-circle' : 'check-circle' } />
+					<Icon
+						weight="fill"
+						name={
+							toast.kind === 'error'
+								? 'warning-circle'
+								: 'check-circle'
+						}
+					/>
 					{ toast.message }
 				</div>
 			) }

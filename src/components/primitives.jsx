@@ -2,7 +2,7 @@
  * Small presentational pieces shared by every screen.
  */
 
-import { __ } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import Icon from './Icon';
 
 /**
@@ -162,10 +162,7 @@ export function RadioCards( { options, value, onChange } ) {
 								{ option.label }
 								{ option.recommended && (
 									<span className="ts-badge-rec">
-										{ __(
-											'Recommended',
-											'teksecurity'
-										) }
+										{ __( 'Recommended', 'teksecurity' ) }
 									</span>
 								) }
 							</span>
@@ -178,6 +175,160 @@ export function RadioCards( { options, value, onChange } ) {
 			} ) }
 		</div>
 	);
+}
+
+/**
+ * A labelled field wrapper.
+ *
+ * Label, control and hint always sit in the same order with the same spacing,
+ * and an error turns the border and the hint red together rather than one
+ * screen doing it one way and the next doing it another.
+ *
+ * @param {Object}      props          Component props.
+ * @param {string}      props.label    Field label.
+ * @param {string}      props.hint     Helper text under the control.
+ * @param {string}      props.error    Error message; replaces the hint when set.
+ * @param {boolean}     props.narrow   Cap the width for a lone field in a card.
+ * @param {JSX.Element} props.children The control.
+ * @return {JSX.Element} The field.
+ */
+export function Field( { label, hint, error, narrow = false, children } ) {
+	const text = error || hint;
+
+	return (
+		<label className={ `ts-field${ narrow ? ' ts-field--narrow' : '' }` }>
+			{ label }
+			{ children }
+			{ text && (
+				<span
+					className={ `ts-hint${ error ? ' ts-hint--error' : '' }` }
+				>
+					{ text }
+				</span>
+			) }
+		</label>
+	);
+}
+
+/**
+ * A labelled select.
+ *
+ * @param {Object}   props          Component props.
+ * @param {string}   props.label    Field label.
+ * @param {string}   props.value    Selected value.
+ * @param {Array}    props.options  [ value, label ] pairs.
+ * @param {Function} props.onChange Called with the next value.
+ * @param {boolean}  props.disabled Whether the control is locked.
+ * @param {string}   props.hint     Helper text.
+ * @return {JSX.Element} The field.
+ */
+export function SelectField( {
+	label,
+	value,
+	options,
+	onChange,
+	disabled = false,
+	hint,
+} ) {
+	return (
+		<Field label={ label } hint={ hint }>
+			<select
+				className="ts-select"
+				value={ value }
+				disabled={ disabled }
+				onChange={ ( event ) => onChange( event.target.value ) }
+			>
+				{ options.map( ( [ key, text ] ) => (
+					<option key={ key } value={ key }>
+						{ text }
+					</option>
+				) ) }
+			</select>
+		</Field>
+	);
+}
+
+/**
+ * A labelled text input.
+ *
+ * @param {Object}   props             Component props.
+ * @param {string}   props.label       Field label.
+ * @param {string}   props.value       Current value.
+ * @param {Function} props.onChange    Called with the next value.
+ * @param {string}   props.type        Input type.
+ * @param {string}   props.placeholder Placeholder.
+ * @param {string}   props.hint        Helper text.
+ * @param {string}   props.error       Error message.
+ * @param {boolean}  props.narrow      Cap the width.
+ * @param {Function} props.onEnter     Called when Enter is pressed.
+ * @param {Object}   props.inputProps  Extra props for the input element.
+ * @return {JSX.Element} The field.
+ */
+export function TextField( {
+	label,
+	value,
+	onChange,
+	type = 'text',
+	placeholder,
+	hint,
+	error,
+	narrow = false,
+	onEnter,
+	inputProps = {},
+} ) {
+	return (
+		<Field label={ label } hint={ hint } error={ error } narrow={ narrow }>
+			<input
+				type={ type }
+				className={ `ts-input${ error ? ' ts-input--error' : '' }` }
+				value={ value }
+				placeholder={ placeholder }
+				onChange={ ( event ) => onChange( event.target.value ) }
+				onKeyDown={ ( event ) => {
+					if ( onEnter && event.key === 'Enter' ) {
+						onEnter();
+					}
+				} }
+				{ ...inputProps }
+			/>
+		</Field>
+	);
+}
+
+/**
+ * A row title with badges beside it.
+ *
+ * @param {Object}      props          Component props.
+ * @param {string}      props.title    The name.
+ * @param {JSX.Element} props.children Badges and pills.
+ * @return {JSX.Element} The title row.
+ */
+export function TitleRow( { title, children } ) {
+	return (
+		<div className="ts-titlerow">
+			<span className="ts-row__title">{ title }</span>
+			{ children }
+		</div>
+	);
+}
+
+/**
+ * The name of an attack type.
+ *
+ * One appearance everywhere it is shown, so the same attack does not read as
+ * two different things between the dashboard, the log and the drawer.
+ *
+ * @param {Object} props       Component props.
+ * @param {string} props.type  Attack type key.
+ * @param {string} props.label Pre-resolved label, when the API already sent one.
+ * @return {JSX.Element} The tag.
+ */
+export function AttackTag( { type, label } ) {
+	const types =
+		( window.tekSecurityData && window.tekSecurityData.types ) || {};
+	const text = label || ( types[ type ] && types[ type ].label ) || type;
+
+	return <span className="ts-tag ts-tag--attack">{ text }</span>;
 }
 
 /**
@@ -271,57 +422,73 @@ export function Loading() {
 }
 
 /**
- * The module header shown on the four single-module screens.
+ * The header card at the top of every single-module screen.
+ *
+ * It owns the whole "is this protection on" idea: the status wording, the
+ * tone, the dimming when it is off and the switch. Screens pass what the
+ * module is and whether it is enabled, never how to colour it.
  *
  * @param {Object}   props          Component props.
- * @param {string}   props.icon     Phosphor icon class.
+ * @param {string}   props.icon     Icon name, without the `ph-` prefix.
  * @param {string}   props.name     Module name.
- * @param {string}   props.status   Status label.
- * @param {string}   props.tone     Status tone.
- * @param {number}   props.stopped  Attempts stopped this week.
  * @param {boolean}  props.enabled  Whether the module is on.
  * @param {Function} props.onToggle Called with the next state.
+ * @param {number}   props.stopped  Attempts stopped in the last 7 days.
+ * @param {string}   props.desc     Description, when "N attempts stopped" does not fit.
+ * @param {string}   props.status   Status label, when it is not simply Active/Off.
+ * @param {string}   props.tone     Status tone, when it is not simply ok/bad.
+ * @param {string}   props.toggleLabel Accessible label for the switch.
  * @return {JSX.Element} The header card.
  */
 export function ModuleHeader( {
 	icon,
 	name,
-	status,
-	tone,
-	stopped,
 	enabled,
 	onToggle,
+	stopped,
+	desc,
+	status,
+	tone,
+	toggleLabel,
 } ) {
+	const label =
+		status ||
+		( enabled
+			? __( 'Active', 'teksecurity' )
+			: __( 'Off', 'teksecurity' ) );
+
+	const description =
+		desc ??
+		sprintf(
+			/* translators: %d: number of attempts stopped in the last 7 days. */
+			_n(
+				'%d attempt stopped in the last 7 days',
+				'%d attempts stopped in the last 7 days',
+				stopped || 0,
+				'teksecurity'
+			),
+			stopped || 0
+		);
+
 	return (
 		<section className="ts-card">
-			<div className="ts-row" style={ { opacity: enabled ? 1 : 0.6 } }>
+			<div className={ `ts-row${ enabled ? '' : ' ts-row--dim' }` }>
 				<div className="ts-row__icon">
-					<Icon name={ icon.replace( 'ph-', '' ) } />
+					<Icon name={ icon } size={ 17 } />
 				</div>
 				<div className="ts-row__grow">
-					<div
-						style={ {
-							display: 'flex',
-							alignItems: 'center',
-							gap: 8,
-							flexWrap: 'wrap',
-						} }
-					>
-						<span className="ts-row__title">{ name }</span>
-						<StatusPill tone={ tone } label={ status } />
-					</div>
-					<div className="ts-row__desc">
-						{ stopped }{ ' ' }
-						{ __(
-							'attempts stopped in the last 7 days',
-							'teksecurity'
-						) }
-					</div>
+					<TitleRow title={ name }>
+						<StatusPill
+							tone={ tone || ( enabled ? 'ok' : 'bad' ) }
+							label={ label }
+						/>
+					</TitleRow>
+					<div className="ts-row__desc">{ description }</div>
 				</div>
 				<Switch
 					checked={ enabled }
 					onChange={ onToggle }
-					label={ name }
+					label={ toggleLabel || name }
 				/>
 			</div>
 		</section>

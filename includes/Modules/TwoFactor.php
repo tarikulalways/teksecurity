@@ -8,6 +8,7 @@
 namespace TekSecurity\Modules;
 
 use TekSecurity\Core\Options;
+use TekSecurity\Helpers\Logger;
 use TekSecurity\Helpers\Totp;
 use WP_Error;
 use WP_User;
@@ -29,7 +30,15 @@ class TwoFactor {
 	const META_TRUSTED   = '_teksec_2fa_trusted';
 	const META_EMAIL_CODE = '_teksec_2fa_email_code';
 
+	const META_LOGIN_TOKEN = '_teksec_2fa_login_token';
+
 	const COOKIE_TRUSTED = 'teksec_2fa_trusted';
+
+	/** Minutes a half-finished login may sit before the token dies. */
+	const TOKEN_LIFETIME = 10;
+
+	/** Wrong codes allowed before the token is destroyed. */
+	const MAX_CODE_ATTEMPTS = 5;
 
 	/**
 	 * Hook in.
@@ -38,7 +47,6 @@ class TwoFactor {
 	 */
 	public function register() {
 		add_filter( 'authenticate', array( $this, 'intercept' ), 50, 3 );
-		add_action( 'login_form_teksec_2fa', array( $this, 'render_challenge' ) );
 		add_action( 'show_user_profile', array( $this, 'profile_section' ) );
 		add_action( 'edit_user_profile', array( $this, 'profile_section' ) );
 	}
@@ -49,6 +57,11 @@ class TwoFactor {
 	 * @return bool
 	 */
 	public static function enabled() {
+		// An emergency way back in: define TEKSEC_DISABLE_2FA in wp-config.php.
+		if ( defined( 'TEKSEC_DISABLE_2FA' ) && TEKSEC_DISABLE_2FA ) {
+			return false;
+		}
+
 		return (bool) Options::get( 'twofactor.on', true );
 	}
 
@@ -109,7 +122,13 @@ class TwoFactor {
 	 * --------------------------------------------------------------------- */
 
 	/**
-	 * Hold the login at the password step and ask for a code.
+	 * Hold the login at the password step and hand it to the second-step screen.
+	 *
+	 * The password is right, but the auth cookie is not issued here. A one-time
+	 * login token is stored against the user and the browser is sent to the
+	 * challenge screen, which finishes the login once the code checks out. That
+	 * way every entry point — wp-login.php, a theme template, WooCommerce, a
+	 * custom form — behaves the same, because they all land on one screen.
 	 *
 	 * @param null|WP_User|WP_Error $user     Result so far.
 	 * @param string                $username Username.
@@ -123,7 +142,11 @@ class TwoFactor {
 			return $user;
 		}
 
-		if ( ! self::is_required( $user->ID ) || ! self::is_configured( $user->ID ) ) {
+		if ( self::is_machine_request() ) {
+			return $user;
+		}
+
+		if ( ! self::is_required( $user->ID ) ) {
 			return $user;
 		}
 
@@ -131,13 +154,14 @@ class TwoFactor {
 			return $user;
 		}
 
+		// A form that already carries the code can finish in one step, which
+		// keeps a single-page custom login working with no redirect at all.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( isset( $_POST['teksec_2fa_code'] ) ) {
+		if ( self::is_configured( $user->ID ) && isset( $_POST['teksec_2fa_code'] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$code = sanitize_text_field( wp_unslash( $_POST['teksec_2fa_code'] ) );
 
 			if ( self::verify_code( $user->ID, $code ) ) {
-				$this->trust_device( $user->ID );
 				return $user;
 			}
 
@@ -147,28 +171,221 @@ class TwoFactor {
 			);
 		}
 
+		if ( self::is_configured( $user->ID ) ) {
+			$this->hand_off( $user, 'teksec_2fa' );
+		}
+
+		// Not enrolled. Inside the grace period they carry on with a password;
+		// once the deadline passes they must set two-factor up to get in.
+		$due = self::due_at( $user->ID );
+
+		if ( null === $due || time() >= $due ) {
+			$this->hand_off( $user, 'teksec_enrol' );
+		}
+
+		return $user;
+	}
+
+	/**
+	 * Send the browser to the second-step screen and stop.
+	 *
+	 * @param WP_User $user   The user whose password was accepted.
+	 * @param string  $action Screen to show: teksec_2fa or teksec_enrol.
+	 * @return void
+	 */
+	protected function hand_off( WP_User $user, $action ) {
+		// Nothing of this half-finished login may survive in the browser.
+		wp_clear_auth_cookie();
+
 		if ( 'email' === self::method( $user->ID ) ) {
 			$this->send_email_code( $user );
 		}
 
-		return new WP_Error(
-			'teksecurity_2fa_required',
-			__( '<strong>One more step.</strong> Enter the 6-digit code for your account.', 'teksecurity' )
+		$token = self::issue_login_token( $user->ID, self::intended_redirect( $user ) );
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'action'       => $action,
+					'teksec_user'  => $user->ID,
+					'teksec_token' => rawurlencode( $token ),
+				),
+				wp_login_url()
+			)
 		);
+		exit;
 	}
 
 	/**
-	 * Add the code field to the login form when a code is expected.
+	 * Where to send the user once the second step passes.
 	 *
+	 * @param WP_User $user The user signing in.
+	 * @return string
+	 */
+	protected static function intended_redirect( WP_User $user ) {
+		// phpcs:ignore WordPress.Security.NonceVerification
+		$requested = isset( $_REQUEST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : '';
+
+		if ( '' === $requested ) {
+			// A custom login form usually posts to the page it lives on, so
+			// coming back to that page is the least surprising outcome.
+			$referer = wp_get_referer();
+
+			if ( $referer && false === strpos( $referer, 'wp-login.php' ) ) {
+				$requested = $referer;
+			}
+		}
+
+		if ( '' === $requested ) {
+			$requested = user_can( $user, 'read' ) ? admin_url() : home_url();
+		}
+
+		/**
+		 * This is core's own filter, fired here so a site that already changes
+		 * where people land after signing in keeps working.
+		 *
+		 * This filter is documented in wp-login.php
+		 */
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+		return apply_filters( 'login_redirect', $requested, $requested, $user );
+	}
+
+	/**
+	 * Whether this request authenticated with a machine credential.
+	 *
+	 * Application passwords, the REST API and XML-RPC cannot show a code
+	 * screen. An application password is itself a per-client credential the
+	 * owner can revoke on its own, so it stands in for the second factor.
+	 *
+	 * @return bool
+	 */
+	public static function is_machine_request() {
+		$machine = ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+			|| ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST )
+			|| ! empty( $GLOBALS['wp_rest_application_password_uuid'] );
+
+		/**
+		 * Filter whether two-factor is skipped for this request.
+		 *
+		 * @param bool $machine Whether the request used a machine credential.
+		 */
+		return (bool) apply_filters( 'teksecurity_2fa_skip', $machine );
+	}
+
+	/* --------------------------------------------------------------------- *
+	 * Login tokens
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * Mint a one-time token that stands for "this password was correct".
+	 *
+	 * @param int    $user_id     User id.
+	 * @param string $redirect_to Where to go once the code checks out.
+	 * @return string The raw token, for the URL.
+	 */
+	public static function issue_login_token( $user_id, $redirect_to = '' ) {
+		$token = wp_generate_password( 32, false, false );
+
+		update_user_meta(
+			$user_id,
+			self::META_LOGIN_TOKEN,
+			array(
+				'hash'     => wp_hash_password( $token ),
+				'expires'  => time() + self::TOKEN_LIFETIME * MINUTE_IN_SECONDS,
+				'redirect' => $redirect_to,
+				'failures' => 0,
+			)
+		);
+
+		return $token;
+	}
+
+	/**
+	 * Check a login token without spending it.
+	 *
+	 * @param int    $user_id User id.
+	 * @param string $token   Raw token from the URL.
+	 * @return array|null The stored entry, or null when it is no good.
+	 */
+	public static function check_login_token( $user_id, $token ) {
+		$stored = get_user_meta( $user_id, self::META_LOGIN_TOKEN, true );
+
+		if ( ! is_array( $stored ) || empty( $stored['hash'] ) ) {
+			return null;
+		}
+
+		if ( $stored['expires'] < time() ) {
+			delete_user_meta( $user_id, self::META_LOGIN_TOKEN );
+			return null;
+		}
+
+		if ( ! wp_check_password( (string) $token, $stored['hash'] ) ) {
+			return null;
+		}
+
+		return $stored;
+	}
+
+	/**
+	 * Spend a login token so it cannot be replayed.
+	 *
+	 * @param int $user_id User id.
 	 * @return void
 	 */
-	public function render_challenge() {
-		// The challenge renders inline on wp-login.php through the error message
-		// and this extra field, so no separate screen is needed.
-		printf(
-			'<p><label for="teksec_2fa_code">%1$s</label><input type="text" name="teksec_2fa_code" id="teksec_2fa_code" class="input" inputmode="numeric" autocomplete="one-time-code" maxlength="20" /></p>',
-			esc_html__( '6-digit code', 'teksecurity' )
+	public static function consume_login_token( $user_id ) {
+		delete_user_meta( $user_id, self::META_LOGIN_TOKEN );
+	}
+
+	/**
+	 * Count a wrong code, and give up on this login once there are too many.
+	 *
+	 * @param int $user_id User id.
+	 * @return int Attempts left. Zero means the token was destroyed.
+	 */
+	public static function register_failure( $user_id ) {
+		$stored = get_user_meta( $user_id, self::META_LOGIN_TOKEN, true );
+
+		if ( ! is_array( $stored ) ) {
+			return 0;
+		}
+
+		$stored['failures'] = (int) $stored['failures'] + 1;
+		$left               = self::MAX_CODE_ATTEMPTS - $stored['failures'];
+
+		if ( $left > 0 ) {
+			update_user_meta( $user_id, self::META_LOGIN_TOKEN, $stored );
+			return $left;
+		}
+
+		self::consume_login_token( $user_id );
+
+		$user = get_userdata( $user_id );
+
+		Logger::record(
+			array(
+				'attack_type' => 'brute',
+				'rule_id'     => 'TS-BF-7005',
+				'rule_name'   => 'Two-factor code guessing',
+				'action'      => 'blocked',
+				'method'      => Firewall::method(),
+				'path'        => Firewall::uri(),
+				'matched_in'  => 'teksec_2fa_code (body)',
+				'payload'     => sprintf(
+					'%1$d wrong codes for %2$s',
+					(int) $stored['failures'],
+					$user ? $user->user_login : (string) $user_id
+				),
+			)
 		);
+
+		/**
+		 * Fires when a login is abandoned for too many wrong codes.
+		 *
+		 * @param int $user_id User id.
+		 */
+		do_action( 'teksecurity_2fa_attempts_exhausted', $user_id );
+
+		return 0;
 	}
 
 	/**
@@ -246,6 +463,20 @@ class TwoFactor {
 		);
 	}
 
+	/**
+	 * Send another email code on request.
+	 *
+	 * send_email_code() already refuses to send twice inside a minute, so this
+	 * cannot be used to flood the address.
+	 *
+	 * @param WP_User $user The user signing in.
+	 * @return void
+	 */
+	public static function resend_email_code( WP_User $user ) {
+		$instance = new self();
+		$instance->send_email_code( $user );
+	}
+
 	/* --------------------------------------------------------------------- *
 	 * Setup
 	 * --------------------------------------------------------------------- */
@@ -253,13 +484,21 @@ class TwoFactor {
 	/**
 	 * Start app enrolment: create a pending secret and return the scan data.
 	 *
-	 * @param int $user_id User id.
+	 * @param int  $user_id User id.
+	 * @param bool $fresh   Mint a new secret, or reuse a pending one.
 	 * @return array
 	 */
-	public static function begin_setup( $user_id ) {
-		$secret = Totp::secret();
+	public static function begin_setup( $user_id, $fresh = true ) {
 		$user   = get_userdata( $user_id );
 		$issuer = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+		$secret = (string) get_user_meta( $user_id, self::META_PENDING, true );
+
+		// A screen that re-renders — after a wrong code, say — must keep
+		// offering the same secret, or the QR the user just scanned stops
+		// matching the code their app is showing.
+		if ( $fresh || '' === $secret ) {
+			$secret = Totp::secret();
+		}
 
 		update_user_meta( $user_id, self::META_PENDING, $secret );
 
@@ -454,7 +693,7 @@ class TwoFactor {
 	 * @param int $user_id User id.
 	 * @return void
 	 */
-	protected function trust_device( $user_id ) {
+	public static function trust_device( $user_id ) {
 		$days = (int) Options::get( 'twofactor.remember', 30 );
 
 		if ( 0 === $days ) {

@@ -7,7 +7,7 @@ import { __, sprintf } from '@wordpress/i18n';
 
 import { api } from '../lib/api';
 import { fullTime } from '../lib/format';
-import { Loading, StatusPill, toneStyle } from './primitives';
+import { AttackTag, Loading, StatusPill } from './primitives';
 import Icon from './Icon';
 
 /**
@@ -156,12 +156,10 @@ export default function EventDrawer( {
 						<header className="ts-drawer__head">
 							<div className="ts-row__grow">
 								<div className="ts-drawer__badges">
-									<span
-										className="ts-tag"
-										style={ toneStyle( 'bad' ) }
-									>
-										{ event.typeLabel }
-									</span>
+									<AttackTag
+										type={ event.type }
+										label={ event.typeLabel }
+									/>
 									<StatusPill
 										tone={
 											event.action === 'blocked'
@@ -212,7 +210,10 @@ export default function EventDrawer( {
 										{ __( 'Request', 'teksecurity' ) }
 									</div>
 									{ technical.map( ( [ key, value ] ) => (
-										<div className="ts-tech__row" key={ key }>
+										<div
+											className="ts-tech__row"
+											key={ key }
+										>
 											<div className="ts-tech__key">
 												{ key }
 											</div>

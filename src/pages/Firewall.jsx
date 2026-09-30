@@ -2,10 +2,10 @@
  * Firewall screen.
  */
 
-import { useEffect, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 import { api } from '../lib/api';
+import { useResource } from '../lib/useResource';
 import {
 	Card,
 	Loading,
@@ -25,40 +25,19 @@ import Icon from '../components/Icon';
  * @return {JSX.Element} The screen.
  */
 export default function Firewall( { isAdv, toast, refresh } ) {
-	const [ data, setData ] = useState( null );
-
-	useEffect( () => {
-		api.get( '/firewall' )
-			.then( setData )
-			.catch( ( error ) => toast( error.message, 'error' ) );
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [] );
+	const { data, save, mutate } = useResource( '/firewall', {
+		toast,
+		refresh,
+	} );
 
 	if ( ! data ) {
 		return <Loading />;
 	}
 
-	const save = async ( payload, message ) => {
-		try {
-			setData( await api.post( '/firewall', payload ) );
-			refresh();
-
-			if ( message ) {
-				toast( message );
-			}
-		} catch ( error ) {
-			toast( error.message, 'error' );
-		}
-	};
-
-	const removeExclusion = async ( id ) => {
-		try {
-			const next = await api.del( `/firewall/exclusions/${ id }` );
-			setData( { ...data, exclusions: next.exclusions } );
-			toast( __( 'Exclusion removed', 'teksecurity' ) );
-		} catch ( error ) {
-			toast( error.message, 'error' );
-		}
+	const modeMessages = {
+		protect: __( 'Firewall is now blocking attacks', 'teksecurity' ),
+		learning: __( 'Learning mode is on', 'teksecurity' ),
+		off: __( 'Firewall turned off', 'teksecurity' ),
 	};
 
 	return (
@@ -73,20 +52,7 @@ export default function Firewall( { isAdv, toast, refresh } ) {
 				<RadioCards
 					value={ data.mode }
 					onChange={ ( mode ) =>
-						save(
-							{ mode },
-							{
-								protect: __(
-									'Firewall is now blocking attacks',
-									'teksecurity'
-								),
-								learning: __(
-									'Learning mode is on',
-									'teksecurity'
-								),
-								off: __( 'Firewall turned off', 'teksecurity' ),
-							}[ mode ]
-						)
+						save( { mode }, modeMessages[ mode ] )
 					}
 					options={ [
 						{
@@ -132,12 +98,16 @@ export default function Firewall( { isAdv, toast, refresh } ) {
 			>
 				{ data.modules.map( ( module ) => (
 					<div
-						className="ts-row"
+						className={ `ts-row${
+							module.on ? '' : ' ts-row--dim'
+						}` }
 						key={ module.key }
-						style={ { opacity: module.on ? 1 : 0.6 } }
 					>
 						<div className="ts-row__icon">
-							<Icon name={ module.icon.replace( 'ph-', '' ) } />
+							<Icon
+								name={ module.icon.replace( 'ph-', '' ) }
+								size={ 17 }
+							/>
 						</div>
 						<div className="ts-row__grow">
 							<div className="ts-row__title">{ module.name }</div>
@@ -172,7 +142,9 @@ export default function Firewall( { isAdv, toast, refresh } ) {
 									[ 'log', __( 'Log only', 'teksecurity' ) ],
 								] }
 								onChange={ ( act ) =>
-									save( { modules: { [ module.key ]: { act } } } )
+									save( {
+										modules: { [ module.key ]: { act } },
+									} )
 								}
 							/>
 						) }
@@ -208,7 +180,21 @@ export default function Firewall( { isAdv, toast, refresh } ) {
 								<button
 									type="button"
 									className="ts-link-button"
-									onClick={ () => removeExclusion( row.id ) }
+									onClick={ () =>
+										mutate(
+											() =>
+												api.del(
+													`/firewall/exclusions/${ row.id }`
+												),
+											{
+												merge: true,
+												message: __(
+													'Exclusion removed',
+													'teksecurity'
+												),
+											}
+										)
+									}
 								>
 									{ __( 'Remove', 'teksecurity' ) }
 								</button>

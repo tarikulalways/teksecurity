@@ -2,10 +2,11 @@
  * Plugin shields screen.
  */
 
-import { useEffect, useState } from '@wordpress/element';
+import { useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 import { api } from '../lib/api';
+import { useResource } from '../lib/useResource';
 import {
 	Chips,
 	EmptyState,
@@ -13,6 +14,7 @@ import {
 	ModuleHeader,
 	StatusPill,
 	Switch,
+	TitleRow,
 } from '../components/primitives';
 import Icon from '../components/Icon';
 
@@ -26,69 +28,35 @@ import Icon from '../components/Icon';
  * @return {JSX.Element} The screen.
  */
 export default function Plugins( { isAdv, toast, refresh } ) {
-	const [ data, setData ] = useState( null );
+	const { data, save, mutate } = useResource( '/plugins', {
+		toast,
+		refresh,
+	} );
 	const [ filter, setFilter ] = useState( 'all' );
 	const [ busy, setBusy ] = useState( '' );
-
-	useEffect( () => {
-		api.get( '/plugins' )
-			.then( setData )
-			.catch( ( error ) => toast( error.message, 'error' ) );
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [] );
 
 	if ( ! data ) {
 		return <Loading />;
 	}
 
-	const apply = ( next, message ) => {
-		setData( next );
-		refresh();
-
-		if ( message ) {
-			toast( message );
-		}
-	};
-
-	const toggleModule = async ( enabled ) => {
-		try {
-			apply(
-				await api.post( '/plugins', { enabled } ),
-				enabled
-					? __( 'Plugin exploit shields turned on', 'teksecurity' )
-					: __( 'Plugin exploit shields turned off', 'teksecurity' )
-			);
-		} catch ( error ) {
-			toast( error.message, 'error' );
-		}
-	};
-
-	const toggleShield = async ( plugin, shield ) => {
-		try {
-			apply( await api.post( `/plugins/${ plugin.slug }/shield`, { shield } ) );
-		} catch ( error ) {
-			toast( error.message, 'error' );
-		}
-	};
+	const toggleShield = ( plugin, shield ) =>
+		mutate( () =>
+			api.post( `/plugins/${ plugin.slug }/shield`, { shield } )
+		);
 
 	const updatePlugin = async ( plugin ) => {
 		setBusy( plugin.slug );
 
-		try {
-			apply(
-				await api.post( `/plugins/${ plugin.slug }/update` ),
-				sprintf(
-					/* translators: 1: plugin name, 2: version number. */
-					__( '%1$s updated to %2$s', 'teksecurity' ),
-					plugin.name,
-					plugin.fixedIn
-				)
-			);
-		} catch ( error ) {
-			toast( error.message, 'error' );
-		} finally {
-			setBusy( '' );
-		}
+		await mutate( () => api.post( `/plugins/${ plugin.slug }/update` ), {
+			message: sprintf(
+				/* translators: 1: plugin name, 2: version number. */
+				__( '%1$s updated to %2$s', 'teksecurity' ),
+				plugin.name,
+				plugin.fixedIn
+			),
+		} );
+
+		setBusy( '' );
 	};
 
 	const rows = data.plugins.filter( ( plugin ) => {
@@ -104,17 +72,24 @@ export default function Plugins( { isAdv, toast, refresh } ) {
 	return (
 		<div className="ts-stack">
 			<ModuleHeader
-				icon="ph-plug"
+				icon="plug"
 				name={ __( 'Plugin exploit shields', 'teksecurity' ) }
-				status={
-					data.enabled
-						? __( 'Active', 'teksecurity' )
-						: __( 'Off', 'teksecurity' )
-				}
-				tone={ data.enabled ? 'ok' : 'bad' }
 				stopped={ data.vulnerable - data.exposed }
 				enabled={ data.enabled }
-				onToggle={ toggleModule }
+				onToggle={ ( enabled ) =>
+					save(
+						{ enabled },
+						enabled
+							? __(
+									'Plugin exploit shields turned on',
+									'teksecurity'
+							  )
+							: __(
+									'Plugin exploit shields turned off',
+									'teksecurity'
+							  )
+					)
+				}
 			/>
 
 			<Chips
@@ -170,22 +145,15 @@ export default function Plugins( { isAdv, toast, refresh } ) {
 									<Icon name="plug" />
 								</div>
 								<div className="ts-row__grow">
-									<div
-										style={ {
-											display: 'flex',
-											alignItems: 'center',
-											gap: 8,
-											flexWrap: 'wrap',
-										} }
-									>
-										<span className="ts-row__title">
-											{ plugin.name }
-										</span>
+									<TitleRow title={ plugin.name }>
 										<span className="ts-hint">
 											{ plugin.version }
 										</span>
-										<StatusPill tone={ tone } label={ label } />
-									</div>
+										<StatusPill
+											tone={ tone }
+											label={ label }
+										/>
+									</TitleRow>
 									{ plugin.vulnerable && (
 										<div className="ts-row__desc">
 											{ sprintf(
@@ -215,13 +183,7 @@ export default function Plugins( { isAdv, toast, refresh } ) {
 								</div>
 
 								{ plugin.vulnerable && (
-									<div
-										style={ {
-											display: 'flex',
-											alignItems: 'center',
-											gap: 10,
-										} }
-									>
+									<div className="ts-actions">
 										<span className="ts-hint">
 											{ __( 'Shield', 'teksecurity' ) }
 										</span>
@@ -248,7 +210,10 @@ export default function Plugins( { isAdv, toast, refresh } ) {
 											}
 										>
 											{ busy === plugin.slug
-												? __( 'Updating…', 'teksecurity' )
+												? __(
+														'Updating…',
+														'teksecurity'
+												  )
 												: sprintf(
 														/* translators: %s: version number. */
 														__(
@@ -276,7 +241,6 @@ export default function Plugins( { isAdv, toast, refresh } ) {
 					<button
 						type="button"
 						className="ts-button"
-						style={ { marginTop: 10 } }
 						onClick={ () => setFilter( 'all' ) }
 					>
 						{ __( 'Show all plugins', 'teksecurity' ) }

@@ -21,7 +21,8 @@ export default function Icon( {
 	size = 16,
 	className = '',
 } ) {
-	const id = weight === 'regular' ? `ph-${ name }` : `ph-${ weight }-${ name }`;
+	const id =
+		weight === 'regular' ? `ph-${ name }` : `ph-${ weight }-${ name }`;
 
 	return (
 		<svg

@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       TekSecurity
+ * Plugin Name:       TekSecurity – Firewall, Login Security, Two-Factor Authentication & Malware Scan
  * Plugin URI:        https://teksecurity.io/
  * Description:       Firewall, login protection, two-factor authentication, plugin vulnerability shields and file integrity monitoring for WordPress.
  * Version:           1.0.0
