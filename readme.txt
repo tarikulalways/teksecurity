@@ -1,9 +1,9 @@
 === TekSecurity – Firewall, Login Security, Two-Factor Authentication & Malware Scan ===
 Contributors: tekzen, tarikulalways
 Tags: security, firewall, two-factor-authentication, login-security, malware
-Requires at least: 6.2
+Requires at least: 6.4
 Tested up to: 7.1
-Requires PHP: 7.4
+Requires PHP: 8.1
 Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
