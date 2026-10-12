@@ -8,16 +8,19 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Firewall, brute-force login protection, two-factor authentication, plugin vulnerability shields and malware scanning — in plain English.
+Firewall, malware scanner, two-factor authentication and brute-force login protection for WordPress — in plain English, not security jargon.
 
 == Description ==
 
-**TekSecurity is a complete WordPress security plugin that blocks hackers before
-WordPress even loads.** It combines a web application firewall (WAF),
-brute-force login protection, two-factor authentication, per-IP rate limiting,
-malicious file upload blocking, plugin vulnerability shields, IP blocklists and
-core file malware scanning — in one dashboard written in plain English, not
-security jargon.
+**TekSecurity is a complete WordPress security plugin that blocks hackers
+before WordPress even loads.** It combines a web application firewall (WAF),
+brute-force login protection, two-factor authentication (2FA), per-IP rate
+limiting, malicious file upload blocking, plugin vulnerability shields, IP
+blocklists and core file malware scanning — in one dashboard written in plain
+English, not security jargon.
+
+No account, no API key, no subscription, no connection to an outside service.
+Install it, answer four questions, and your site is protected.
 
 Most WordPress security plugins either overwhelm you with settings you daren't
 touch, or hide everything behind a "protected" badge that tells you nothing.
@@ -25,6 +28,29 @@ TekSecurity does neither. Every screen explains what a protection does, what it
 stopped this week, and what happens if you turn it off. When an attack is
 blocked, you can open the request and read exactly what was sent, which rule
 matched it, and why it was dangerous.
+
+= Everything included =
+
+* **WordPress firewall (WAF)** — blocks SQL injection, XSS, RCE, path
+  traversal, privilege escalation and authentication bypass before WordPress
+  loads.
+* **Brute-force login protection** — per-IP lockouts, XML-RPC blocking and
+  generic login errors.
+* **Two-factor authentication (2FA)** — authenticator app (TOTP), email codes
+  and backup codes, per user or per role.
+* **Malware scanning** — daily core file integrity checks against the official
+  WordPress.org checksums.
+* **Plugin vulnerability shields** — virtual patching for known exploits in the
+  plugins you already have installed.
+* **Rate limiting** — per-IP, per-minute limits for login, REST API,
+  `admin-ajax.php`, search and XML-RPC.
+* **File upload protection** — blocks PHP backdoors, double extensions and
+  malicious SVGs.
+* **IP blocklist and allowlist** — single addresses or CIDR ranges.
+* **Traffic log** — every blocked request, searchable, with a plain-language
+  explanation of what the attacker was trying to do.
+* **Email alerts and a weekly summary** — throttled so an attack cannot flood
+  your inbox.
 
 = Why site owners choose TekSecurity =
 
@@ -328,6 +354,14 @@ data in the EU. You control the retention period (7, 30 or 90 days) and old
 entries are deleted automatically. Nothing leaves your server, so there is no
 third-party processor to declare.
 
+= Does TekSecurity send any of my data to you? =
+
+No. There is no account, no API key and no telemetry. Blocked requests are
+stored in a table on your own site and deleted automatically when your retention
+period expires. The only outbound requests the plugin ever makes are to
+WordPress.org for official core checksums, and to the vulnerability advisory
+endpoint if you point it at one.
+
 = What happens to my data if I delete the plugin? =
 
 Deleting TekSecurity removes everything it created: all six database tables, all
@@ -349,9 +383,22 @@ Deactivating without deleting leaves your data and settings intact.
 6. Plugin shields, showing which plugins are vulnerable, shielded or exposed.
 7. Dark mode, supported on every screen.
 
+== Source Code ==
+
+The admin interface is written in React and compiled with
+`@wordpress/scripts`. The readable, unminified sources live in the `src/`
+directory of the development repository, and `build/` is the compiled output
+shipped in the plugin.
+
+To build it yourself:
+
+`npm install && npm run build`
+
+The full source code: https://github.com/tarikulalways/teksecurity
+
 == Changelog ==
 
-= 1.0.0 — 28 September 2026 =
+= 1.0.0 — 12 October 2026 =
 
 First public release.
 

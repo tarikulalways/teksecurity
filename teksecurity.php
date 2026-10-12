@@ -1,13 +1,11 @@
 <?php
 /**
  * Plugin Name:       TekSecurity – Firewall, Login Security, Two-Factor Authentication & Malware Scan
- * Plugin URI:        https://teksecurity.io/
  * Description:       Firewall, login protection, two-factor authentication, plugin vulnerability shields and file integrity monitoring for WordPress.
  * Version:           1.0.0
- * Requires at least: 6.2
- * Requires PHP:      7.4
- * Author:            TekSecurity
- * Author URI:        https://teksecurity.io/
+ * Requires at least: 6.4
+ * Requires PHP:      8.1
+ * Author:            Tekzen
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       teksecurity
