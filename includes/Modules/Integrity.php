@@ -109,7 +109,7 @@ class Integrity {
 			);
 		}
 
-		$table   = Installer::table( 'integrity' );
+		$table   = esc_sql( Installer::table( 'integrity' ) );
 		$ignored = self::ignored();
 		$now     = current_time( 'mysql' );
 		$checked = 0;
@@ -239,7 +239,7 @@ class Integrity {
 	public static function issues() {
 		global $wpdb;
 
-		$table = Installer::table( 'integrity' );
+		$table = esc_sql( Installer::table( 'integrity' ) );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 		$rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY status, file_path LIMIT 500", ARRAY_A );
 

@@ -36,7 +36,7 @@ class IpList {
 		$type = 'allow' === $type ? 'allow' : 'block';
 
 		if ( ! isset( self::$cache[ $type ] ) ) {
-			$table = Installer::table( 'ips' );
+			$table = esc_sql( Installer::table( 'ips' ) );
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 			$rows = $wpdb->get_results( $wpdb->prepare( "SELECT id, ip, note, created_at FROM {$table} WHERE list_type = %s ORDER BY created_at DESC, id DESC", $type ), ARRAY_A );
 
