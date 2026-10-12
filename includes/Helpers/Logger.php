@@ -101,7 +101,7 @@ class Logger {
 			)
 		);
 
-		$table  = Installer::table( 'events' );
+		$table  = esc_sql( Installer::table( 'events' ) );
 		$where  = array( '1=1' );
 		$params = array();
 
@@ -134,7 +134,7 @@ class Logger {
 
 		// The placeholders live inside $clause, which is assembled above, so the
 		// sniffs that count them statically cannot see them.
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQLPlaceholders
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQLPlaceholders, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		if ( $params ) {
 			$total = (int) $wpdb->get_var(
 				$wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$clause}", $params )
@@ -167,7 +167,7 @@ class Logger {
 	public static function find( $id ) {
 		global $wpdb;
 
-		$table = Installer::table( 'events' );
+		$table = esc_sql( Installer::table( 'events' ) );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", (int) $id ), ARRAY_A );
 
@@ -183,7 +183,7 @@ class Logger {
 	public static function counts_by_type( $days = 7 ) {
 		global $wpdb;
 
-		$table = Installer::table( 'events' );
+		$table = esc_sql( Installer::table( 'events' ) );
 		$since = gmdate( 'Y-m-d H:i:s', strtotime( '-' . (int) $days . ' days', self::now() ) );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
@@ -206,7 +206,7 @@ class Logger {
 	public static function blocked_by_day( $days = 7 ) {
 		global $wpdb;
 
-		$table = Installer::table( 'events' );
+		$table = esc_sql( Installer::table( 'events' ) );
 		$since = gmdate( 'Y-m-d 00:00:00', strtotime( '-' . ( (int) $days - 1 ) . ' days', self::now() ) );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
@@ -237,7 +237,7 @@ class Logger {
 	public static function summary() {
 		global $wpdb;
 
-		$table = Installer::table( 'events' );
+		$table = esc_sql( Installer::table( 'events' ) );
 		$today = gmdate( 'Y-m-d 00:00:00', self::now() );
 		$yest  = gmdate( 'Y-m-d 00:00:00', strtotime( '-1 day', self::now() ) );
 		$week  = gmdate( 'Y-m-d H:i:s', strtotime( '-7 days', self::now() ) );
@@ -270,7 +270,7 @@ class Logger {
 		global $wpdb;
 
 		$days  = max( 1, (int) Options::get( 'data.retention', 30 ) );
-		$table = Installer::table( 'events' );
+		$table = esc_sql( Installer::table( 'events' ) );
 		$since = gmdate( 'Y-m-d H:i:s', strtotime( '-' . $days . ' days', self::now() ) );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery

@@ -202,8 +202,8 @@ class Installer {
 		global $wpdb;
 
 		foreach ( array( 'events', 'ips', 'lockouts', 'exclusions', 'integrity', 'vulnerabilities' ) as $key ) {
-			$table = self::table( $key );
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$table = esc_sql( self::table( $key ) );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 			$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
 		}
 	}

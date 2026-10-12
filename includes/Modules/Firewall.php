@@ -286,7 +286,7 @@ class Firewall {
 		global $wpdb;
 
 		if ( null === self::$exclusions ) {
-			$table = Installer::table( 'exclusions' );
+			$table = esc_sql( Installer::table( 'exclusions' ) );
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 			$rows = $wpdb->get_results( "SELECT id, rule_id, path, created_at FROM {$table} ORDER BY created_at DESC, id DESC", ARRAY_A );
 
@@ -319,7 +319,7 @@ class Firewall {
 		$rule_id = substr( sanitize_text_field( $rule_id ), 0, 40 );
 		$path    = substr( esc_url_raw( $path ), 0, 190 );
 
-		$table = Installer::table( 'exclusions' );
+		$table = esc_sql( Installer::table( 'exclusions' ) );
 
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 		$wpdb->query(

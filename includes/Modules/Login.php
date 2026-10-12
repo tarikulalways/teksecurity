@@ -257,7 +257,7 @@ class Login {
 
 		$minutes = max( 1, (int) Options::get( 'login.lockout', 30 ) );
 
-		$table = Installer::table( 'lockouts' );
+		$table = esc_sql( Installer::table( 'lockouts' ) );
 
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 		$wpdb->query(
@@ -286,7 +286,7 @@ class Login {
 
 		self::purge_expired();
 
-		$table = Installer::table( 'lockouts' );
+		$table = esc_sql( Installer::table( 'lockouts' ) );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 		$rows = $wpdb->get_results( "SELECT id, ip, country, username, tries, expires_at FROM {$table} ORDER BY expires_at DESC", ARRAY_A );
 
@@ -317,7 +317,7 @@ class Login {
 
 		self::purge_expired();
 
-		$table = Installer::table( 'lockouts' );
+		$table = esc_sql( Installer::table( 'lockouts' ) );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT id, ip, username, tries, expires_at FROM {$table} WHERE ip = %s", $ip ), ARRAY_A );
 
@@ -354,7 +354,7 @@ class Login {
 	public static function purge_expired() {
 		global $wpdb;
 
-		$table = Installer::table( 'lockouts' );
+		$table = esc_sql( Installer::table( 'lockouts' ) );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 		$wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE expires_at < %s", current_time( 'mysql' ) ) );
 	}
