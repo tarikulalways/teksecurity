@@ -1,0 +1,58 @@
+# Files and folders excluded from the distributed plugin zip.
+# Used by `wp dist-archive .`. Note that dist-archive 3.1 does NOT drop
+# `.distignore` on its own, so it is listed below like any other dev file.
+# Everything listed here is development-only; the zip must contain just
+# teksecurity.php, uninstall.php, readme.txt, includes/, build/, assets/
+# and languages/.
+
+# Version control
+.git
+.gitattributes
+.gitignore
+.github
+.distignore
+
+# Node / build toolchain (build/ is the compiled output and DOES ship)
+node_modules
+src
+package.json
+package-lock.json
+webpack.config.js
+.babelrc
+.eslintrc
+.eslintrc.js
+.eslintignore
+.prettierrc
+.prettierrc.js
+.nvmrc
+.editorconfig
+
+# Composer / PHP tooling
+composer.json
+composer.lock
+vendor
+phpcs.xml
+phpcs.xml.dist
+phpunit.xml
+phpunit.xml.dist
+.phpcs.xml.dist
+tests
+
+# WordPress.org banner and icon artwork — these belong in SVN assets/,
+# not in trunk/.
+wporg-assets
+
+# Local tooling and scratch output
+.playwright-mcp
+.claude
+.vscode
+.idea
+__pycache__
+*.log
+*.zip
+*.sql
+*.tar.gz
+
+# OS noise
+.DS_Store
+Thumbs.db
