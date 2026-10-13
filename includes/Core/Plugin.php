@@ -75,7 +75,6 @@ final class Plugin {
 
 		$this->booted = true;
 
-		add_action( 'init', array( $this, 'load_textdomain' ) );
 		add_action( 'admin_init', array( 'TekSecurity\\Core\\Installer', 'maybe_upgrade' ) );
 
 		$this->services = array(
@@ -115,32 +114,47 @@ final class Plugin {
 	}
 
 	/**
-	 * Load translations.
+	 * Strings that may be printed before translations are available.
 	 *
-	 * @return void
+	 * The firewall ends a blocked request long before WordPress reaches `init`,
+	 * so these cannot go through a gettext call at the point of use. They are
+	 * listed here, as plain literals, so translators still see them and so the
+	 * lookup happens only once `init` has run.
+	 *
+	 * @return array English text => translated text.
 	 */
-	public function load_textdomain() {
-		// Kept deliberately: WordPress only auto-loads translations for plugins
-		// it serves itself, and this one also ships outside that directory.
-		// phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound
-		load_plugin_textdomain( 'teksecurity', false, dirname( TEKSEC_BASENAME ) . '/languages' );
+	protected static function early_strings() {
+		return array(
+			'This request was blocked by the site firewall. If you think this is a mistake, contact the site owner.' => __( 'This request was blocked by the site firewall. If you think this is a mistake, contact the site owner.', 'teksecurity' ),
+			'This request was blocked by a TekSecurity virtual patch.' => __( 'This request was blocked by a TekSecurity virtual patch.', 'teksecurity' ),
+			'Too many requests from your address. Please wait a moment and try again.' => __( 'Too many requests from your address. Please wait a moment and try again.', 'teksecurity' ),
+			'Request blocked' => __( 'Request blocked', 'teksecurity' ),
+			'Slow down'       => __( 'Slow down', 'teksecurity' ),
+		);
 	}
 
 	/**
 	 * Translate a string that may be needed before `init`.
 	 *
-	 * The firewall ends a blocked request long before WordPress reaches `init`,
-	 * and WordPress warns about loading a textdomain that early. So the few
-	 * strings on a block page stay in English when the request is cut short,
-	 * and are translated normally once `init` has run. A site that needs those
-	 * words in its own language can supply them through the filter.
+	 * Before `init` the text stays in English, because WordPress warns about
+	 * loading a textdomain that early. Once `init` has run the string is looked
+	 * up in the table above. A site that needs its own wording either way can
+	 * supply it through the filter.
 	 *
 	 * @param string $text    English text.
 	 * @param string $context Where the string is used, e.g. "block_message".
 	 * @return string
 	 */
 	public static function early_text( $text, $context = '' ) {
-		$translated = did_action( 'init' ) ? __( $text, 'teksecurity' ) : $text; // phpcs:ignore WordPress.WP.I18n
+		$translated = (string) $text;
+
+		if ( did_action( 'init' ) ) {
+			$strings = self::early_strings();
+
+			if ( isset( $strings[ $text ] ) ) {
+				$translated = $strings[ $text ];
+			}
+		}
 
 		/**
 		 * Filter a string shown on a blocked request.

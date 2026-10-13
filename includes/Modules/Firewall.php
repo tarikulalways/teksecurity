@@ -220,10 +220,9 @@ class Firewall {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['key'] ) && false !== strpos( $uri, 'action=rp' ) ) {
-			// Deliberately raw: the firewall has to see exactly what was sent,
-			// and sanitizing here would strip the characters it looks for.
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			$candidates['resetkey'] = array( 'key (query)' => wp_unslash( $_GET['key'] ) );
+			// Unslashed and bounded inside self::raw(); see that method.
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+			$candidates['resetkey'] = array( 'key (query)' => self::raw( $_GET['key'] ) );
 		}
 
 		/**
@@ -256,7 +255,7 @@ class Firewall {
 		}
 
 		if ( is_scalar( $value ) ) {
-			$out[ $label ] = rawurldecode( (string) wp_unslash( $value ) );
+			$out[ $label ] = rawurldecode( self::raw( $value ) );
 		}
 	}
 
@@ -396,9 +395,32 @@ class Firewall {
 	 * @return string
 	 */
 	public static function uri() {
-		// Raw by design: the URI is what the firewall inspects, and it is only
-		// ever matched against patterns or escaped before it is printed.
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		return isset( $_SERVER['REQUEST_URI'] ) ? substr( (string) wp_unslash( $_SERVER['REQUEST_URI'] ), 0, 2000 ) : '/';
+		// Unslashed and bounded inside self::raw(); see that method.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		return isset( $_SERVER['REQUEST_URI'] ) ? self::raw( $_SERVER['REQUEST_URI'] ) : '/';
+	}
+
+	/**
+	 * Read a request value the firewall has to inspect byte for byte.
+	 *
+	 * The signatures look for exactly the characters a sanitiser would remove —
+	 * angle brackets, quotes, control characters, path traversal — so the value
+	 * cannot be sanitised before it is matched or the rules would never fire.
+	 * Instead it is unslashed, cut to a safe length and stripped of null bytes
+	 * here, is only ever used as the subject of `preg_match()`, and is
+	 * sanitised again by `Logger::record()` before anything is stored or by
+	 * `esc_html()` before anything is printed.
+	 *
+	 * @param mixed $value Raw request value.
+	 * @return string
+	 */
+	protected static function raw( $value ) {
+		if ( ! is_scalar( $value ) ) {
+			return '';
+		}
+
+		$value = str_replace( "\0", '', (string) wp_unslash( $value ) );
+
+		return substr( $value, 0, 2000 );
 	}
 }

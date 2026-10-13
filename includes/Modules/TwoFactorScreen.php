@@ -49,8 +49,8 @@ class TwoFactorScreen {
 			$error = $this->handle_code( $user, $entry );
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification
 		if ( isset( $_GET['teksec_resend'] ) && 'email' === TwoFactor::method( $user->ID ) ) {
+			check_admin_referer( 'teksec_resend_' . $user->ID );
 			TwoFactor::resend_email_code( $user );
 			$error = '';
 		}
@@ -80,7 +80,8 @@ class TwoFactorScreen {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( isset( $_POST['teksec_2fa_code'] ) ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing
+			check_admin_referer( 'teksec_2fa_' . $user->ID );
+
 			$code   = sanitize_text_field( wp_unslash( $_POST['teksec_2fa_code'] ) );
 			$result = TwoFactor::confirm_setup( $user->ID, $code );
 
@@ -146,7 +147,7 @@ class TwoFactorScreen {
 		if ( 'email' === $method ) {
 			printf(
 				'<p class="teksec-2fa__note"><a href="%1$s">%2$s</a></p>',
-				esc_url( add_query_arg( 'teksec_resend', '1' ) ),
+				esc_url( wp_nonce_url( add_query_arg( 'teksec_resend', '1' ), 'teksec_resend_' . $user->ID ) ),
 				esc_html__( 'Send a new code', 'teksecurity' )
 			);
 		}
@@ -293,6 +294,7 @@ class TwoFactorScreen {
 	protected function sign_in( WP_User $user ) {
 		TwoFactor::consume_login_token( $user->ID );
 
+		// The nonce for this form was verified by the caller before sign-in.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$remember = ! empty( $_POST['teksec_2fa_remember'] );
 
@@ -326,8 +328,8 @@ class TwoFactorScreen {
 	protected function show_backup_codes( WP_User $user, array $entry, array $codes ) {
 		$redirect = ! empty( $entry['redirect'] ) ? $entry['redirect'] : admin_url();
 
-		login_header( __( 'Save your backup codes', 'teksecurity' ) );
 		$this->styles();
+		login_header( __( 'Save your backup codes', 'teksecurity' ) );
 		?>
 		<div id="loginform" class="teksec-2fa__panel">
 			<p class="teksec-2fa__lead">
@@ -403,9 +405,9 @@ class TwoFactorScreen {
 		// phpcs:ignore WordPress.Security.NonceVerification
 		$token = isset( $_REQUEST['teksec_token'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['teksec_token'] ) ) : '';
 
-		login_header( $title, '', $error ? new \WP_Error( 'teksec_2fa', $error ) : null );
-
 		$this->styles();
+
+		login_header( $title, '', $error ? new \WP_Error( 'teksec_2fa', $error ) : null );
 		?>
 		<form name="teksec_2fa_form" id="loginform" method="post"
 			action="<?php echo esc_url( add_query_arg( 'action', $action, wp_login_url() ) ); ?>">
@@ -436,23 +438,27 @@ class TwoFactorScreen {
 	/**
 	 * A little styling so the screen sits comfortably in the login page.
 	 *
+	 * Queued on `login_enqueue_scripts`, which `login_header()` fires, so this
+	 * has to be called before the header is printed.
+	 *
 	 * @return void
 	 */
 	protected function styles() {
-		?>
-		<style>
-			#loginform .teksec-2fa__lead { margin: 0 0 16px; color: #3c434a; }
-			#loginform .teksec-2fa__note { margin: 12px 0 0; font-size: 12px; color: #646970; }
-			#loginform .teksec-2fa__code { letter-spacing: .3em; font-size: 20px; text-align: center; padding: 6px; }
-			#loginform .teksec-2fa__qr { text-align: center; margin: 0 0 12px; }
-			#loginform .teksec-2fa__secret { display: inline-block; margin-top: 4px; letter-spacing: .08em; }
-			#loginform .teksec-2fa__remember { margin-top: 14px; }
-			#loginform.teksec-2fa__panel { padding: 24px; }
-			#loginform .teksec-2fa__codes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0 0 8px; padding: 0; list-style: none; }
-			#loginform .teksec-2fa__codes li { margin: 0; }
-			#loginform .teksec-2fa__codes code { display: block; padding: 6px; background: #f0f0f1; text-align: center; font-size: 13px; }
-		</style>
-		<?php
+		add_action( 'login_enqueue_scripts', array( $this, 'enqueue_styles' ) );
+	}
+
+	/**
+	 * Enqueue the login stylesheet.
+	 *
+	 * @return void
+	 */
+	public function enqueue_styles() {
+		wp_enqueue_style(
+			'teksecurity-login-2fa',
+			TEKSEC_URL . 'assets/css/login-2fa.css',
+			array( 'login' ),
+			TEKSEC_VERSION
+		);
 	}
 
 	/**

@@ -217,7 +217,12 @@ class Hardening {
 			}
 		}
 
-		$path = isset( $file['tmp_name'] ) ? $file['tmp_name'] : '';
+		$path = isset( $file['tmp_name'] ) ? (string) $file['tmp_name'] : '';
+
+		// Only ever touch the temporary file PHP or WordPress handed us.
+		if ( '' !== $path && ! self::is_upload_temp( $path ) ) {
+			$path = '';
+		}
 
 		if ( Options::get( 'uploads.scan', true ) && $path && is_readable( $path ) ) {
 			$head = (string) file_get_contents( $path, false, null, 0, 8192 ); // phpcs:ignore WordPress.WP.AlternativeFunctions
@@ -270,13 +275,56 @@ class Hardening {
 	}
 
 	/**
+	 * Whether a path is the temporary file an upload actually arrived in.
+	 *
+	 * Browser uploads are confirmed with `is_uploaded_file()`. Sideloads never
+	 * pass that test, so those are accepted only while they sit inside the
+	 * temporary directory WordPress uses for them. Anything else - a symlink,
+	 * a path somewhere else on disk - is refused, so the scanner never reads
+	 * or rewrites a file outside the upload it was handed.
+	 *
+	 * @param string $path Candidate path.
+	 * @return bool
+	 */
+	protected static function is_upload_temp( $path ) {
+		if ( '' === $path || false !== strpos( $path, "\0" ) ) {
+			return false;
+		}
+
+		$real = realpath( $path );
+
+		if ( ! $real || ! is_file( $real ) || is_link( $path ) ) {
+			return false;
+		}
+
+		if ( is_uploaded_file( $real ) ) {
+			return true;
+		}
+
+		$temp = realpath( get_temp_dir() );
+
+		return $temp && 0 === strpos( $real, rtrim( $temp, '/\\' ) . DIRECTORY_SEPARATOR );
+	}
+
+	/**
 	 * Strip scripts and event handlers out of an SVG before it is stored.
 	 *
-	 * @param string $path Temporary file path.
+	 * @param string $path Temporary file path, already checked by is_upload_temp().
 	 * @return void
 	 */
 	protected function clean_svg( $path ) {
-		$svg = (string) file_get_contents( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+		global $wp_filesystem;
+
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+
+		if ( ! $wp_filesystem ) {
+			return;
+		}
+
+		$svg = (string) $wp_filesystem->get_contents( $path );
 
 		if ( '' === $svg ) {
 			return;
@@ -294,7 +342,7 @@ class Hardening {
 		);
 
 		if ( null !== $clean && $clean !== $svg ) {
-			file_put_contents( $path, $clean ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+			$wp_filesystem->put_contents( $path, $clean, FS_CHMOD_FILE );
 		}
 	}
 

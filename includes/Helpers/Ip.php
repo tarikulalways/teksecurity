@@ -50,14 +50,10 @@ class Ip {
 		$sources = self::sources();
 		$header  = isset( $sources[ $proxy ] ) ? $sources[ $proxy ] : 'REMOTE_ADDR';
 
-		// Not sanitized on the way in on purpose: the value is validated as an
-		// IP address below, which is stricter than any string sanitizer.
-		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$raw = isset( $_SERVER[ $header ] ) ? wp_unslash( $_SERVER[ $header ] ) : '';
+		$raw = isset( $_SERVER[ $header ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) ) : '';
 		if ( '' === $raw && isset( $_SERVER['REMOTE_ADDR'] ) ) {
-			$raw = wp_unslash( $_SERVER['REMOTE_ADDR'] );
+			$raw = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
 		}
-		// phpcs:enable
 
 		// X-Forwarded-For may be a chain; the left-most entry is the client.
 		$candidate = trim( (string) strtok( (string) $raw, ',' ) );
