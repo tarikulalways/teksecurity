@@ -156,6 +156,13 @@ class TwoFactor {
 
 		// A form that already carries the code can finish in one step, which
 		// keeps a single-page custom login working with no redirect at all.
+		//
+		// No nonce here on purpose: this runs inside core's `authenticate`
+		// filter, on the same POST core itself processes without one, and any
+		// login form - core's or a theme's - would break if one were demanded.
+		// Nothing is written or changed; the code is only compared, and the
+		// request has already proved it knows the password. The plugin's own
+		// second-step screens do carry and verify a nonce.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( self::is_configured( $user->ID ) && isset( $_POST['teksec_2fa_code'] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing

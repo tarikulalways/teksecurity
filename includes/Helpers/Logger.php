@@ -38,19 +38,22 @@ class Logger {
 
 		$ip = isset( $event['ip'] ) ? $event['ip'] : Ip::current();
 
+		// Everything below comes from the request the firewall just inspected,
+		// so it is sanitised here, on the way into the database, rather than
+		// trusted. Matching happens earlier, against the raw value.
 		$row = array(
 			'created_at'  => current_time( 'mysql' ),
-			'attack_type' => substr( (string) ( $event['attack_type'] ?? '' ), 0, 32 ),
-			'rule_id'     => substr( (string) ( $event['rule_id'] ?? '' ), 0, 40 ),
-			'rule_name'   => substr( (string) ( $event['rule_name'] ?? '' ), 0, 190 ),
+			'attack_type' => self::clean( $event['attack_type'] ?? '', 32 ),
+			'rule_id'     => self::clean( $event['rule_id'] ?? '', 40 ),
+			'rule_name'   => self::clean( $event['rule_name'] ?? '', 190 ),
 			'action'      => 'logged' === ( $event['action'] ?? '' ) ? 'logged' : 'blocked',
-			'method'      => substr( (string) ( $event['method'] ?? 'GET' ), 0, 10 ),
-			'path'        => substr( (string) ( $event['path'] ?? '' ), 0, 2000 ),
-			'matched_in'  => substr( (string) ( $event['matched_in'] ?? '' ), 0, 190 ),
-			'payload'     => substr( (string) ( $event['payload'] ?? '' ), 0, 2000 ),
-			'ip'          => substr( (string) $ip, 0, 45 ),
-			'country'     => substr( (string) ( $event['country'] ?? Ip::country( $ip ) ), 0, 2 ),
-			'user_agent'  => substr( (string) ( $event['user_agent'] ?? Ip::user_agent() ), 0, 500 ),
+			'method'      => self::clean( $event['method'] ?? 'GET', 10 ),
+			'path'        => substr( esc_url_raw( (string) ( $event['path'] ?? '' ) ), 0, 2000 ),
+			'matched_in'  => self::clean( $event['matched_in'] ?? '', 190 ),
+			'payload'     => self::evidence( $event['payload'] ?? '', 2000 ),
+			'ip'          => self::clean( $ip, 45 ),
+			'country'     => self::clean( $event['country'] ?? Ip::country( $ip ), 2 ),
+			'user_agent'  => self::clean( $event['user_agent'] ?? Ip::user_agent(), 500 ),
 			'user_id'     => (int) ( $event['user_id'] ?? get_current_user_id() ),
 		);
 
@@ -71,6 +74,38 @@ class Logger {
 		do_action( 'teksecurity_event_logged', $row );
 
 		return $id;
+	}
+
+	/**
+	 * Sanitise a short, structured value on its way into the log table.
+	 *
+	 * @param mixed $value  Raw value, usually taken from the request.
+	 * @param int   $length Maximum stored length.
+	 * @return string
+	 */
+	protected static function clean( $value, $length ) {
+		return substr( sanitize_text_field( (string) $value ), 0, $length );
+	}
+
+	/**
+	 * Sanitise the matched payload without destroying the evidence.
+	 *
+	 * `sanitize_text_field()` is wrong here: it strips the tags and the
+	 * percent-encoded octets that are the whole reason the request was
+	 * blocked, which would leave the log showing an empty attack. So the
+	 * value is made safe instead of blanked - invalid UTF-8 is dropped,
+	 * control characters and null bytes are removed, and the length is
+	 * capped. It is stored as text, never executed, and escaped on output.
+	 *
+	 * @param mixed $value  Matched value from the request.
+	 * @param int   $length Maximum stored length.
+	 * @return string
+	 */
+	protected static function evidence( $value, $length ) {
+		$value = wp_check_invalid_utf8( (string) $value, true );
+		$value = preg_replace( '/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/', '', $value );
+
+		return substr( (string) $value, 0, $length );
 	}
 
 	/**

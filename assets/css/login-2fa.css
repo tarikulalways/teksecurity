@@ -1,0 +1,14 @@
+/**
+ * Two-factor screens on the WordPress login page.
+ */
+
+#loginform .teksec-2fa__lead { margin: 0 0 16px; color: #3c434a; }
+#loginform .teksec-2fa__note { margin: 12px 0 0; font-size: 12px; color: #646970; }
+#loginform .teksec-2fa__code { letter-spacing: .3em; font-size: 20px; text-align: center; padding: 6px; }
+#loginform .teksec-2fa__qr { text-align: center; margin: 0 0 12px; }
+#loginform .teksec-2fa__secret { display: inline-block; margin-top: 4px; letter-spacing: .08em; }
+#loginform .teksec-2fa__remember { margin-top: 14px; }
+#loginform.teksec-2fa__panel { padding: 24px; }
+#loginform .teksec-2fa__codes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0 0 8px; padding: 0; list-style: none; }
+#loginform .teksec-2fa__codes li { margin: 0; }
+#loginform .teksec-2fa__codes code { display: block; padding: 6px; background: #f0f0f1; text-align: center; font-size: 13px; }
