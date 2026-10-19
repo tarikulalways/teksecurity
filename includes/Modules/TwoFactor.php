@@ -617,6 +617,22 @@ class TwoFactor {
 	}
 
 	/**
+	 * Put a submitted backup code back into the 1234-5678 shape it was issued in.
+	 *
+	 * @param string $code Submitted value.
+	 * @return string The normalised code, or an empty string when it cannot be one.
+	 */
+	protected static function normalise_backup_code( $code ) {
+		$digits = preg_replace( '/\D/', '', (string) $code );
+
+		if ( 8 !== strlen( (string) $digits ) ) {
+			return '';
+		}
+
+		return substr( $digits, 0, 4 ) . '-' . substr( $digits, 4 );
+	}
+
+	/**
 	 * Spend a backup code.
 	 *
 	 * @param int    $user_id User id.
@@ -630,10 +646,19 @@ class TwoFactor {
 			return false;
 		}
 
+		// Codes are shown as 1234-5678 but people type them as they read them:
+		// with the dash, without it, with a space instead. The stored hash is
+		// of the dashed form, so whatever arrives is put back into that shape
+		// before it is checked, rather than failing a code that was correct.
+		$code = self::normalise_backup_code( $code );
+
+		if ( '' === $code ) {
+			return false;
+		}
+
 		// Codes are stored the way WordPress stores passwords, so they must be
 		// checked the same way: wp_check_password() understands both the modern
 		// bcrypt format and the older phpass hashes from an earlier install.
-		$code = strtoupper( trim( $code ) );
 
 		foreach ( $hashes as $index => $hash ) {
 			if ( wp_check_password( $code, $hash ) ) {

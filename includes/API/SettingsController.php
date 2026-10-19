@@ -106,7 +106,28 @@ class SettingsController extends Controller {
 					'proxy'     => (string) Options::get( 'data.proxy', 'direct' ),
 				),
 				'integrity' => Integrity::summary(),
+				// So the Scans screen can say when the vulnerability check last
+				// ran, the same way it does for the integrity check, instead of
+				// leaving that one row with no history at all.
+				'vulnerability' => self::vulnerability_summary(),
 			)
+		);
+	}
+
+	/**
+	 * When the vulnerability scan last ran, and what it found.
+	 *
+	 * @return array
+	 */
+	protected static function vulnerability_summary() {
+		$last = ( new VulnerabilityScan() )->last_result();
+
+		return array(
+			'enabled'    => (bool) Options::get( 'vulnerability.on', true ),
+			'lastScanAt' => isset( $last['finishedAt'] ) ? (string) $last['finishedAt'] : null,
+			'scanned'    => isset( $last['scanned'] ) ? (int) $last['scanned'] : 0,
+			'findings'   => isset( $last['findings'] ) ? (int) $last['findings'] : 0,
+			'error'      => isset( $last['error'] ) ? (string) $last['error'] : null,
 		);
 	}
 

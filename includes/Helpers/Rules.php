@@ -259,10 +259,16 @@ class Rules {
 					'pattern' => '/(wpscan|sqlmap|nikto|acunetix|nessus|masscan|zgrab|dirbuster|gobuster|havij|nmap\s+scripting)/i',
 					'scope'   => array( 'useragent' ),
 				),
+				// Author enumeration is handled by Hardening::block_author_enumeration(),
+				// which redirects to the home page instead of returning a 403.
+				// A ?author=N link is something a real visitor or a feed reader
+				// can follow by accident, so a quiet redirect is the right
+				// answer where a hard block would look like a broken site. It
+				// is logged there under TS-MAL-9020 all the same.
 				array(
 					'id'      => 'TS-MAL-9020',
 					'name'    => 'Author enumeration',
-					'pattern' => '/^\d{1,4}$/',
+					'pattern' => '',
 					'scope'   => array( 'author' ),
 				),
 			),

@@ -84,6 +84,10 @@ class Firewall {
 			return;
 		}
 
+		if ( self::is_trusted_author() ) {
+			return;
+		}
+
 		$hit = $this->match();
 
 		if ( ! $hit ) {
@@ -113,6 +117,39 @@ class Firewall {
 	}
 
 	/**
+	 * Whether this request comes from someone already allowed to post markup.
+	 *
+	 * The signatures hunt for exactly what an administrator legitimately types
+	 * all day: an `<svg>` icon, a YouTube `<iframe>`, an `onclick` handler, a
+	 * tracking `<script>`, a sentence that happens to contain "union select".
+	 * Running them against a trusted author turns ordinary editing into a 403
+	 * and makes the plugin unusable on a real site.
+	 *
+	 * `unfiltered_html` is the right test because it is the capability core
+	 * itself uses to decide who may save raw markup: on a single site that is
+	 * administrators and editors, on multisite only super admins. Someone who
+	 * can already save a `<script>` through the editor gains nothing by
+	 * smuggling one past the firewall, so there is nothing left to protect
+	 * against. Everyone else - logged out, subscribers, customers, contributors
+	 * - is still inspected in full.
+	 *
+	 * The IP blocklist and the rate limiter run before this and are not
+	 * affected: a blocked address stays blocked whoever it claims to be.
+	 *
+	 * @return bool
+	 */
+	public static function is_trusted_author() {
+		$trusted = is_user_logged_in() && current_user_can( 'unfiltered_html' );
+
+		/**
+		 * Filter whether the signature scan is skipped for this user.
+		 *
+		 * @param bool $trusted Whether the current user may post markup.
+		 */
+		return (bool) apply_filters( 'teksecurity_trusted_author', $trusted );
+	}
+
+	/**
 	 * Find the first signature that matches the request.
 	 *
 	 * @return array|null
@@ -131,10 +168,10 @@ class Firewall {
 
 			foreach ( $rules as $rule ) {
 				if ( '' === $rule['pattern'] ) {
-					continue; // Upload rules run inside the Hardening module.
+					continue; // Upload and author rules run inside the Hardening module.
 				}
 
-				if ( $this->is_excluded( $rule['id'], $path ) ) {
+				if ( self::is_excluded( $rule['id'], $path ) ) {
 					continue;
 				}
 
@@ -196,11 +233,6 @@ class Firewall {
 			$candidates['useragent'] = array( 'User-Agent (header)' => $agent );
 		}
 
-		$author = Input::query_value( 'author' );
-		if ( null !== $author && ! is_user_logged_in() ) {
-			$candidates['author'] = array( 'author (query)' => $author );
-		}
-
 		$reset_key = Input::query_value( 'key' );
 		if ( null !== $reset_key && false !== strpos( $uri, 'action=rp' ) ) {
 			$candidates['resetkey'] = array( 'key (query)' => $reset_key );
@@ -217,11 +249,19 @@ class Firewall {
 	/**
 	 * Whether a rule is excluded on a path.
 	 *
+	 * Public and static because an exclusion the owner added from the traffic
+	 * log has to mean the same thing wherever the rule it names runs: the
+	 * signature scan here, the rate limiter in Hardening and the virtual
+	 * patches in Vulnerability all ask this same question.
+	 *
 	 * @param string $rule_id Rule identifier.
-	 * @param string $path    Request path without the query string.
+	 * @param string $path    Request path without the query string. Defaults to
+	 *                        the current request.
 	 * @return bool
 	 */
-	protected function is_excluded( $rule_id, $path ) {
+	public static function is_excluded( $rule_id, $path = null ) {
+		$path = null === $path ? Input::path() : $path;
+
 		foreach ( self::exclusions() as $row ) {
 			if ( $row['ruleId'] === $rule_id && $row['path'] === $path ) {
 				return true;

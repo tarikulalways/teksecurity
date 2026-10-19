@@ -74,6 +74,14 @@ class Hardening {
 			return;
 		}
 
+		// An exclusion added from the traffic log names the rule id that was
+		// logged, so the limiter has to honour it too - otherwise "skip this
+		// rule here" silently does nothing for the rate-limit rows, which are
+		// the ones people most often need to exclude.
+		if ( Firewall::is_excluded( self::rule_id( $rule ) ) ) {
+			return;
+		}
+
 		if ( 0 === (int) $rule['limit'] ) {
 			$this->rate_deny( $rule, 0, $ip );
 			return;
@@ -132,6 +140,19 @@ class Hardening {
 	}
 
 	/**
+	 * The rule identifier a rate-limit event is logged under.
+	 *
+	 * Defined once so the id written to the log and the id an exclusion is
+	 * matched against cannot drift apart.
+	 *
+	 * @param array $rule The rule.
+	 * @return string
+	 */
+	protected static function rule_id( array $rule ) {
+		return 'TS-RL-' . strtoupper( substr( $rule['key'], 0, 8 ) );
+	}
+
+	/**
 	 * Throttle or block a request that went over its limit.
 	 *
 	 * @param array  $rule  The rule that matched.
@@ -145,7 +166,7 @@ class Hardening {
 		Logger::record(
 			array(
 				'attack_type' => 'rate',
-				'rule_id'     => 'TS-RL-' . strtoupper( substr( $rule['key'], 0, 8 ) ),
+				'rule_id'     => self::rule_id( $rule ),
 				'rule_name'   => sprintf( '%s rate limit', $rule['name'] ),
 				'action'      => 'blocked',
 				'method'      => Firewall::method(),

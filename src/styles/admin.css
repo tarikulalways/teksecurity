@@ -1292,6 +1292,35 @@
   color: var(--ts-t3);
 }
 
+/* Integrity findings ------------------------------------------------------ */
+
+.ts-findings {
+  border-top: 1px solid var(--ts-line);
+  background: var(--ts-sunken);
+}
+
+.ts-findings__head {
+  padding: 12px 16px 8px;
+  font-size: 12px;
+  color: var(--ts-t3);
+  text-wrap: pretty;
+}
+
+.ts-findings__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--ts-line);
+}
+
+.ts-findings__path {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 /* Drawer and modals ------------------------------------------------------- */
 
 .ts-overlay {

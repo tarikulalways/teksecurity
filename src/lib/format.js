@@ -39,6 +39,26 @@ export function logTime( iso ) {
 }
 
 /**
+ * Clock time alone, in the reader's own timezone.
+ *
+ * Used where only the time of day matters, such as when a lockout runs out.
+ *
+ * @param {string} iso ISO 8601 timestamp.
+ * @return {string} Formatted time, e.g. "23:52".
+ */
+export function clockTime( iso ) {
+	if ( ! iso ) {
+		return '';
+	}
+
+	return new Date( iso ).toLocaleTimeString( undefined, {
+		hour: '2-digit',
+		minute: '2-digit',
+		hour12: false,
+	} );
+}
+
+/**
  * Relative time, e.g. "12 min ago".
  *
  * @param {string} iso ISO 8601 timestamp.

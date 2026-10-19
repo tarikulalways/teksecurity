@@ -5,6 +5,7 @@
 import { __, _n, sprintf } from '@wordpress/i18n';
 
 import { api } from '../lib/api';
+import { clockTime } from '../lib/format';
 import { useResource } from '../lib/useResource';
 import {
 	Card,
@@ -194,13 +195,15 @@ export default function LoginProtection( { isAdv, toast, refresh } ) {
 								<div className="ts-row__desc">
 									{ sprintf(
 										/* translators: 1: attempt count, 2: username, 3: clock time. */
-										__(
+										_n(
+											'%1$d failed login as “%2$s” · until %3$s',
 											'%1$d failed logins as “%2$s” · until %3$s',
+											row.tries,
 											'teksecurity'
 										),
 										row.tries,
 										row.username,
-										row.until
+										clockTime( row.expiresAt )
 									) }
 								</div>
 							</div>
