@@ -9,6 +9,7 @@ namespace TekSecurity\Modules;
 
 use TekSecurity\Core\Options;
 use TekSecurity\Core\Plugin;
+use TekSecurity\Helpers\Input;
 use TekSecurity\Helpers\Ip;
 use TekSecurity\Helpers\IpList;
 use TekSecurity\Helpers\Logger;
@@ -67,7 +68,7 @@ class Hardening {
 			return;
 		}
 
-		$rule = $this->matching_rule( Firewall::uri() );
+		$rule = $this->matching_rule( Input::uri() );
 
 		if ( ! $rule ) {
 			return;
@@ -110,8 +111,7 @@ class Hardening {
 			if ( '/*' === $pattern ) {
 				$hit = true;
 			} elseif ( '/?s=*' === $pattern ) {
-				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				$hit = isset( $_GET['s'] );
+				$hit = null !== Input::query_value( 's' );
 			} elseif ( false !== strpos( $pattern, '*' ) ) {
 				$hit = 0 === strpos( $path, rtrim( $pattern, '*' ) );
 			} else {
@@ -450,13 +450,13 @@ class Hardening {
 	 * @return void
 	 */
 	public function block_author_enumeration() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( is_admin() || is_user_logged_in() || ! isset( $_GET['author'] ) ) {
+		$author = Input::query_value( 'author' );
+
+		if ( is_admin() || is_user_logged_in() || null === $author ) {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$author = sanitize_text_field( wp_unslash( $_GET['author'] ) );
+		$author = sanitize_text_field( $author );
 
 		if ( ! is_numeric( $author ) ) {
 			return;

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-13T17:15:08+00:00\n"
+"POT-Creation-Date: 2026-10-19T16:55:37+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: teksecurity\n"
@@ -346,99 +346,99 @@ msgstr ""
 msgid "Brute-force protection"
 msgstr ""
 
-#: includes/Helpers/Rules.php:316
+#: includes/Helpers/Rules.php:310
 msgid "UNION-based SQL injection"
 msgstr ""
 
-#: includes/Helpers/Rules.php:317
+#: includes/Helpers/Rules.php:311
 msgid "Time-based blind SQL injection"
 msgstr ""
 
-#: includes/Helpers/Rules.php:318
+#: includes/Helpers/Rules.php:312
 msgid "Boolean-based SQL injection"
 msgstr ""
 
-#: includes/Helpers/Rules.php:319
+#: includes/Helpers/Rules.php:313
 msgid "Stacked query or table read"
 msgstr ""
 
-#: includes/Helpers/Rules.php:320
+#: includes/Helpers/Rules.php:314
 msgid "Event-handler injection"
 msgstr ""
 
-#: includes/Helpers/Rules.php:321
+#: includes/Helpers/Rules.php:315
 msgid "Injected code in comment"
 msgstr ""
 
-#: includes/Helpers/Rules.php:322
+#: includes/Helpers/Rules.php:316
 msgid "Script URI in parameter"
 msgstr ""
 
-#: includes/Helpers/Rules.php:323
+#: includes/Helpers/Rules.php:319
 msgid "REST request with forged nonce"
 msgstr ""
 
-#: includes/Helpers/Rules.php:324
+#: includes/Helpers/Rules.php:320
 msgid "Password-reset key tampering"
 msgstr ""
 
-#: includes/Helpers/Rules.php:325
+#: includes/Helpers/Rules.php:321
 msgid "Unauthorised option update"
 msgstr ""
 
-#: includes/Helpers/Rules.php:326
+#: includes/Helpers/Rules.php:322
 msgid "Role change by low-privilege user"
 msgstr ""
 
-#: includes/Helpers/Rules.php:327
+#: includes/Helpers/Rules.php:323
 msgid "Executable disguised as a document"
 msgstr ""
 
-#: includes/Helpers/Rules.php:328
+#: includes/Helpers/Rules.php:324
 msgid "Blocked file extension"
 msgstr ""
 
-#: includes/Helpers/Rules.php:329
+#: includes/Helpers/Rules.php:325
 msgid "Sensitive file probe"
 msgstr ""
 
-#: includes/Helpers/Rules.php:330
+#: includes/Helpers/Rules.php:326
 msgid "Known attack tool"
 msgstr ""
 
-#: includes/Helpers/Rules.php:331
+#: includes/Helpers/Rules.php:327
 msgid "Author enumeration"
 msgstr ""
 
-#: includes/Helpers/Rules.php:332
+#: includes/Helpers/Rules.php:328
 msgid "Path traversal"
 msgstr ""
 
-#: includes/Helpers/Rules.php:333
+#: includes/Helpers/Rules.php:329
 msgid "PHP object injection"
 msgstr ""
 
-#: includes/Helpers/Rules.php:334
+#: includes/Helpers/Rules.php:330
 msgid "Remote code execution"
 msgstr ""
 
-#: includes/Helpers/Rules.php:335
+#: includes/Helpers/Rules.php:331
 msgid "PHP wrapper in parameter"
 msgstr ""
 
-#: includes/Helpers/Rules.php:336
+#: includes/Helpers/Rules.php:332
 msgid "Login attempt limit exceeded"
 msgstr ""
 
-#: includes/Helpers/Rules.php:337
+#: includes/Helpers/Rules.php:333
 msgid "Login attempt with a blocked username"
 msgstr ""
 
-#: includes/Helpers/Rules.php:338
+#: includes/Helpers/Rules.php:334
 msgid "XML-RPC logins are turned off"
 msgstr ""
 
-#: includes/Helpers/Rules.php:339
+#: includes/Helpers/Rules.php:335
 msgid "Address is on your blocklist"
 msgstr ""
 

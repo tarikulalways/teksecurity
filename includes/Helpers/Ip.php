@@ -50,9 +50,10 @@ class Ip {
 		$sources = self::sources();
 		$header  = isset( $sources[ $proxy ] ) ? $sources[ $proxy ] : 'REMOTE_ADDR';
 
-		$raw = isset( $_SERVER[ $header ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) ) : '';
-		if ( '' === $raw && isset( $_SERVER['REMOTE_ADDR'] ) ) {
-			$raw = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
+		$raw = Input::server( $header );
+
+		if ( '' === $raw ) {
+			$raw = Input::server( 'REMOTE_ADDR' );
 		}
 
 		// X-Forwarded-For may be a chain; the left-most entry is the client.
@@ -134,11 +135,7 @@ class Ip {
 	 * @return string
 	 */
 	public static function country( $ip ) {
-		$code = '';
-
-		if ( isset( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ) {
-			$code = sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_IPCOUNTRY'] ) );
-		}
+		$code = Input::server( 'HTTP_CF_IPCOUNTRY' );
 
 		/**
 		 * Filter the resolved country code for an IP address.
@@ -157,10 +154,6 @@ class Ip {
 	 * @return string
 	 */
 	public static function user_agent() {
-		if ( ! isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
-			return '';
-		}
-
-		return substr( sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ), 0, 500 );
+		return substr( Input::server( 'HTTP_USER_AGENT' ), 0, 500 );
 	}
 }

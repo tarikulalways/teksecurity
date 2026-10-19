@@ -212,12 +212,6 @@ class Rules {
 			),
 			'auth'      => array(
 				array(
-					'id'      => 'TS-AUTH-3004',
-					'name'    => 'REST request with forged nonce',
-					'pattern' => '/^[a-f0-9]{0,9}$|[^a-z0-9]/i',
-					'scope'   => array( 'nonce' ),
-				),
-				array(
 					'id'      => 'TS-AUTH-3010',
 					'name'    => 'Password-reset key tampering',
 					'pattern' => '/[\x00-\x1f<>"\'\\\\]/',
@@ -320,6 +314,8 @@ class Rules {
 			'TS-XSS-2004'  => __( 'Event-handler injection', 'teksecurity' ),
 			'TS-XSS-2011'  => __( 'Injected code in comment', 'teksecurity' ),
 			'TS-XSS-2019'  => __( 'Script URI in parameter', 'teksecurity' ),
+			// Retired signature: kept here so log rows written by an earlier
+			// version still show a readable rule name.
 			'TS-AUTH-3004' => __( 'REST request with forged nonce', 'teksecurity' ),
 			'TS-AUTH-3010' => __( 'Password-reset key tampering', 'teksecurity' ),
 			'TS-PRIV-4002' => __( 'Unauthorised option update', 'teksecurity' ),
