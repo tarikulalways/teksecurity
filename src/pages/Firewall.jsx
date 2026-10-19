@@ -2,7 +2,7 @@
  * Firewall screen.
  */
 
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 
 import { api } from '../lib/api';
 import { useResource } from '../lib/useResource';
@@ -89,7 +89,12 @@ export default function Firewall( { isAdv, toast, refresh } ) {
 					isAdv
 						? sprintf(
 								/* translators: %d: number of signatures. */
-								__( '%d signatures', 'teksecurity' ),
+								_n(
+									'%d signature',
+									'%d signatures',
+									data.ruleTotal,
+									'teksecurity'
+								),
 								data.ruleTotal
 						  )
 						: null
@@ -115,18 +120,38 @@ export default function Firewall( { isAdv, toast, refresh } ) {
 							<div className="ts-row__meta">
 								{ isAdv
 									? sprintf(
-											/* translators: 1: rule count, 2: match count. */
+											/* translators: 1: rule count phrase, 2: match count phrase, both already pluralised. */
 											__(
-												'%1$d rules · %2$d matches this week',
+												'%1$s · %2$s this week',
 												'teksecurity'
 											),
-											module.rules,
-											module.matches
+											sprintf(
+												/* translators: %d: number of signatures in this module. */
+												_n(
+													'%d rule',
+													'%d rules',
+													module.rules,
+													'teksecurity'
+												),
+												module.rules
+											),
+											sprintf(
+												/* translators: %d: number of matches. */
+												_n(
+													'%d match',
+													'%d matches',
+													module.matches,
+													'teksecurity'
+												),
+												module.matches
+											)
 									  )
 									: sprintf(
 											/* translators: %d: number of attempts stopped. */
-											__(
+											_n(
+												'%d attempt stopped this week',
 												'%d attempts stopped this week',
+												module.matches,
 												'teksecurity'
 											),
 											module.matches

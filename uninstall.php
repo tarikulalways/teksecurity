@@ -41,6 +41,7 @@ $teksec_meta = array(
 	'_teksec_2fa_reminded_at',
 	'_teksec_2fa_trusted',
 	'_teksec_2fa_email_code',
+	'_teksec_2fa_login_token',
 );
 
 foreach ( $teksec_meta as $teksec_key ) {

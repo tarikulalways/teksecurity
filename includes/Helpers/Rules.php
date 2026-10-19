@@ -212,12 +212,6 @@ class Rules {
 			),
 			'auth'      => array(
 				array(
-					'id'      => 'TS-AUTH-3004',
-					'name'    => 'REST request with forged nonce',
-					'pattern' => '/^[a-f0-9]{0,9}$|[^a-z0-9]/i',
-					'scope'   => array( 'nonce' ),
-				),
-				array(
 					'id'      => 'TS-AUTH-3010',
 					'name'    => 'Password-reset key tampering',
 					'pattern' => '/[\x00-\x1f<>"\'\\\\]/',
@@ -265,10 +259,16 @@ class Rules {
 					'pattern' => '/(wpscan|sqlmap|nikto|acunetix|nessus|masscan|zgrab|dirbuster|gobuster|havij|nmap\s+scripting)/i',
 					'scope'   => array( 'useragent' ),
 				),
+				// Author enumeration is handled by Hardening::block_author_enumeration(),
+				// which redirects to the home page instead of returning a 403.
+				// A ?author=N link is something a real visitor or a feed reader
+				// can follow by accident, so a quiet redirect is the right
+				// answer where a hard block would look like a broken site. It
+				// is logged there under TS-MAL-9020 all the same.
 				array(
 					'id'      => 'TS-MAL-9020',
 					'name'    => 'Author enumeration',
-					'pattern' => '/^\d{1,4}$/',
+					'pattern' => '',
 					'scope'   => array( 'author' ),
 				),
 			),
@@ -320,6 +320,8 @@ class Rules {
 			'TS-XSS-2004'  => __( 'Event-handler injection', 'teksecurity' ),
 			'TS-XSS-2011'  => __( 'Injected code in comment', 'teksecurity' ),
 			'TS-XSS-2019'  => __( 'Script URI in parameter', 'teksecurity' ),
+			// Retired signature: kept here so log rows written by an earlier
+			// version still show a readable rule name.
 			'TS-AUTH-3004' => __( 'REST request with forged nonce', 'teksecurity' ),
 			'TS-AUTH-3010' => __( 'Password-reset key tampering', 'teksecurity' ),
 			'TS-PRIV-4002' => __( 'Unauthorised option update', 'teksecurity' ),

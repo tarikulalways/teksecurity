@@ -10,6 +10,7 @@ namespace TekSecurity\Modules;
 use TekSecurity\Core\Installer;
 use TekSecurity\Core\Options;
 use TekSecurity\Core\Plugin;
+use TekSecurity\Helpers\Input;
 use TekSecurity\Helpers\Ip;
 use TekSecurity\Helpers\IpList;
 use TekSecurity\Helpers\Logger;
@@ -83,6 +84,10 @@ class Firewall {
 			return;
 		}
 
+		if ( self::is_trusted_author() ) {
+			return;
+		}
+
 		$hit = $this->match();
 
 		if ( ! $hit ) {
@@ -112,6 +117,39 @@ class Firewall {
 	}
 
 	/**
+	 * Whether this request comes from someone already allowed to post markup.
+	 *
+	 * The signatures hunt for exactly what an administrator legitimately types
+	 * all day: an `<svg>` icon, a YouTube `<iframe>`, an `onclick` handler, a
+	 * tracking `<script>`, a sentence that happens to contain "union select".
+	 * Running them against a trusted author turns ordinary editing into a 403
+	 * and makes the plugin unusable on a real site.
+	 *
+	 * `unfiltered_html` is the right test because it is the capability core
+	 * itself uses to decide who may save raw markup: on a single site that is
+	 * administrators and editors, on multisite only super admins. Someone who
+	 * can already save a `<script>` through the editor gains nothing by
+	 * smuggling one past the firewall, so there is nothing left to protect
+	 * against. Everyone else - logged out, subscribers, customers, contributors
+	 * - is still inspected in full.
+	 *
+	 * The IP blocklist and the rate limiter run before this and are not
+	 * affected: a blocked address stays blocked whoever it claims to be.
+	 *
+	 * @return bool
+	 */
+	public static function is_trusted_author() {
+		$trusted = is_user_logged_in() && current_user_can( 'unfiltered_html' );
+
+		/**
+		 * Filter whether the signature scan is skipped for this user.
+		 *
+		 * @param bool $trusted Whether the current user may post markup.
+		 */
+		return (bool) apply_filters( 'teksecurity_trusted_author', $trusted );
+	}
+
+	/**
 	 * Find the first signature that matches the request.
 	 *
 	 * @return array|null
@@ -119,7 +157,7 @@ class Firewall {
 	protected function match() {
 		$candidates = $this->candidates();
 		$signatures = Rules::signatures();
-		$path       = strtok( self::uri(), '?' );
+		$path       = Input::path();
 
 		foreach ( $signatures as $module => $rules ) {
 			$settings = Options::get( 'firewall.modules.' . $module, array( 'on' => true ) );
@@ -130,10 +168,10 @@ class Firewall {
 
 			foreach ( $rules as $rule ) {
 				if ( '' === $rule['pattern'] ) {
-					continue; // Upload rules run inside the Hardening module.
+					continue; // Upload and author rules run inside the Hardening module.
 				}
 
-				if ( $this->is_excluded( $rule['id'], $path ) ) {
+				if ( self::is_excluded( $rule['id'], $path ) ) {
 					continue;
 				}
 
@@ -171,31 +209,14 @@ class Firewall {
 	 */
 	protected function candidates() {
 		$uri   = self::uri();
-		$query = array();
-		$body  = array();
-
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
-		foreach ( (array) $_GET as $key => $value ) {
-			$this->flatten( $query, sanitize_key( (string) $key ) . ' (query)', $value );
-		}
-		foreach ( (array) $_POST as $key => $value ) {
-			$this->flatten( $body, sanitize_key( (string) $key ) . ' (body)', $value );
-		}
-		// phpcs:enable
-
-		$cookies = array();
-		foreach ( (array) $_COOKIE as $key => $value ) {
-			if ( 0 === strpos( (string) $key, 'wordpress_' ) || 0 === strpos( (string) $key, 'wp-settings' ) ) {
-				continue;
-			}
-			$this->flatten( $cookies, sanitize_key( (string) $key ) . ' (cookie)', $value );
-		}
+		$query = Input::query();
+		$body  = Input::body();
 
 		// Some rules only make sense against the parameter name and its value
 		// together, e.g. "roles[]=administrator".
 		$pairs = array();
 		foreach ( array_merge( $query, $body ) as $label => $value ) {
-			$name           = trim( (string) strtok( (string) $label, ' ' ) );
+			$name            = trim( (string) strtok( (string) $label, ' ' ) );
 			$pairs[ $label ] = $name . '=' . $value;
 		}
 
@@ -203,7 +224,7 @@ class Firewall {
 			'path'   => array( 'path' => rawurldecode( $uri ) ),
 			'query'  => $query,
 			'body'   => $body,
-			'cookie' => $cookies,
+			'cookie' => Input::cookies(),
 			'pair'   => $pairs,
 		);
 
@@ -212,17 +233,9 @@ class Firewall {
 			$candidates['useragent'] = array( 'User-Agent (header)' => $agent );
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( isset( $_GET['author'] ) && ! is_user_logged_in() ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$candidates['author'] = array( 'author (query)' => sanitize_text_field( wp_unslash( $_GET['author'] ) ) );
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( isset( $_GET['key'] ) && false !== strpos( $uri, 'action=rp' ) ) {
-			// Unslashed and bounded inside self::raw(); see that method.
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-			$candidates['resetkey'] = array( 'key (query)' => self::raw( $_GET['key'] ) );
+		$reset_key = Input::query_value( 'key' );
+		if ( null !== $reset_key && false !== strpos( $uri, 'action=rp' ) ) {
+			$candidates['resetkey'] = array( 'key (query)' => $reset_key );
 		}
 
 		/**
@@ -234,39 +247,21 @@ class Firewall {
 	}
 
 	/**
-	 * Flatten nested request data into label => string pairs.
-	 *
-	 * @param array  $out   Accumulator, by reference.
-	 * @param string $label Label for this value.
-	 * @param mixed  $value Value.
-	 * @param int    $depth Recursion guard.
-	 * @return void
-	 */
-	protected function flatten( array &$out, $label, $value, $depth = 0 ) {
-		if ( $depth > 4 ) {
-			return;
-		}
-
-		if ( is_array( $value ) ) {
-			foreach ( $value as $key => $item ) {
-				$this->flatten( $out, $label . '[' . sanitize_key( (string) $key ) . ']', $item, $depth + 1 );
-			}
-			return;
-		}
-
-		if ( is_scalar( $value ) ) {
-			$out[ $label ] = rawurldecode( self::raw( $value ) );
-		}
-	}
-
-	/**
 	 * Whether a rule is excluded on a path.
 	 *
+	 * Public and static because an exclusion the owner added from the traffic
+	 * log has to mean the same thing wherever the rule it names runs: the
+	 * signature scan here, the rate limiter in Hardening and the virtual
+	 * patches in Vulnerability all ask this same question.
+	 *
 	 * @param string $rule_id Rule identifier.
-	 * @param string $path    Request path without the query string.
+	 * @param string $path    Request path without the query string. Defaults to
+	 *                        the current request.
 	 * @return bool
 	 */
-	protected function is_excluded( $rule_id, $path ) {
+	public static function is_excluded( $rule_id, $path = null ) {
+		$path = null === $path ? Input::path() : $path;
+
 		foreach ( self::exclusions() as $row ) {
 			if ( $row['ruleId'] === $rule_id && $row['path'] === $path ) {
 				return true;
@@ -386,41 +381,19 @@ class Firewall {
 	 * @return string
 	 */
 	public static function method() {
-		return isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : 'GET';
+		return Input::method();
 	}
 
 	/**
 	 * Request URI.
 	 *
+	 * Read through Helpers\Input, which is the single place the plugin touches
+	 * the raw request and which documents why a firewall cannot sanitise a
+	 * value before its signatures have matched it.
+	 *
 	 * @return string
 	 */
 	public static function uri() {
-		// Unslashed and bounded inside self::raw(); see that method.
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		return isset( $_SERVER['REQUEST_URI'] ) ? self::raw( $_SERVER['REQUEST_URI'] ) : '/';
-	}
-
-	/**
-	 * Read a request value the firewall has to inspect byte for byte.
-	 *
-	 * The signatures look for exactly the characters a sanitiser would remove —
-	 * angle brackets, quotes, control characters, path traversal — so the value
-	 * cannot be sanitised before it is matched or the rules would never fire.
-	 * Instead it is unslashed, cut to a safe length and stripped of null bytes
-	 * here, is only ever used as the subject of `preg_match()`, and is
-	 * sanitised again by `Logger::record()` before anything is stored or by
-	 * `esc_html()` before anything is printed.
-	 *
-	 * @param mixed $value Raw request value.
-	 * @return string
-	 */
-	protected static function raw( $value ) {
-		if ( ! is_scalar( $value ) ) {
-			return '';
-		}
-
-		$value = str_replace( "\0", '', (string) wp_unslash( $value ) );
-
-		return substr( $value, 0, 2000 );
+		return Input::uri();
 	}
 }

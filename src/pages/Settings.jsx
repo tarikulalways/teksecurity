@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useState } from '@wordpress/element';
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 
 import { api } from '../lib/api';
 import { timeAgo } from '../lib/format';
@@ -14,10 +14,22 @@ import {
 	Segmented,
 	SelectField,
 	SettingRow,
+	StatusPill,
 	Switch,
 	TextField,
 } from '../components/primitives';
 import Icon from '../components/Icon';
+
+/**
+ * What each integrity finding means, in plain words.
+ *
+ * @return {Object} Status key => label.
+ */
+const STATUS_LABELS = {
+	modified: __( 'Changed', 'teksecurity' ),
+	missing: __( 'Missing', 'teksecurity' ),
+	unknown: __( 'Not part of WordPress', 'teksecurity' ),
+};
 
 /**
  * The sections in the rail, in order.
@@ -85,6 +97,7 @@ export default function Settings( { isAdv, toast, openWizard } ) {
 	const [ draft, setDraft ] = useState( null );
 	const [ busy, setBusy ] = useState( '' );
 	const [ tab, setTab ] = useState( 'alerts' );
+	const [ findings, setFindings ] = useState( null );
 
 	useEffect( () => {
 		api.get( '/settings' )
@@ -95,6 +108,19 @@ export default function Settings( { isAdv, toast, openWizard } ) {
 			.catch( ( error ) => toast( error.message, 'error' ) );
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [] );
+
+	// "3 problems" is not an answer on its own - the point of watching core
+	// files is being told which ones changed. The findings are fetched once
+	// the Scans section is opened rather than on every visit to Settings.
+	useEffect( () => {
+		if ( tab !== 'scans' ) {
+			return;
+		}
+
+		api.get( '/integrity' )
+			.then( ( data ) => setFindings( data.issues ) )
+			.catch( () => setFindings( [] ) );
+	}, [ tab, saved ] );
 
 	if ( ! draft ) {
 		return <Loading />;
@@ -259,14 +285,23 @@ export default function Settings( { isAdv, toast, openWizard } ) {
 					desc={
 						saved.integrity.lastScanAt
 							? sprintf(
-									/* translators: 1: relative time, 2: files compared, 3: problems found. */
+									/* translators: 1: relative time, 2: files compared, 3: problems found, already pluralised. */
 									__(
-										'Last run %1$s · %2$d files compared · %3$d problems',
+										'Last run %1$s · %2$d files compared · %3$s',
 										'teksecurity'
 									),
 									timeAgo( saved.integrity.lastScanAt ),
 									saved.integrity.checked,
-									saved.integrity.issues
+									sprintf(
+										/* translators: %d: number of problems found. */
+										_n(
+											'%d problem',
+											'%d problems',
+											saved.integrity.issues,
+											'teksecurity'
+										),
+										saved.integrity.issues
+									)
 							  )
 							: __( 'Has not run yet.', 'teksecurity' )
 					}
@@ -288,12 +323,60 @@ export default function Settings( { isAdv, toast, openWizard } ) {
 					</button>
 				</SettingRow>
 
+				{ findings && findings.length > 0 && (
+					<div className="ts-findings">
+						<div className="ts-findings__head">
+							{ __(
+								'These core files do not match what WordPress.org published for your version.',
+								'teksecurity'
+							) }
+						</div>
+						{ findings.map( ( file ) => (
+							<div className="ts-findings__row" key={ file.id }>
+								<span className="ts-mono ts-findings__path">
+									{ file.file }
+								</span>
+								<StatusPill
+									tone={
+										file.status === 'modified'
+											? 'bad'
+											: 'warn'
+									}
+									label={ STATUS_LABELS[ file.status ] }
+								/>
+							</div>
+						) ) }
+					</div>
+				) }
+
 				<SettingRow
 					title={ __( 'Plugin vulnerabilities', 'teksecurity' ) }
-					desc={ __(
-						'Matches your installed plugins against the advisory feed.',
-						'teksecurity'
-					) }
+					desc={
+						saved.vulnerability && saved.vulnerability.lastScanAt
+							? sprintf(
+									/* translators: 1: relative time, 2: plugins checked, 3: findings phrase, already pluralised. */
+									__(
+										'Last run %1$s · %2$d plugins checked · %3$s',
+										'teksecurity'
+									),
+									timeAgo( saved.vulnerability.lastScanAt ),
+									saved.vulnerability.scanned,
+									sprintf(
+										/* translators: %d: number of vulnerable plugins found. */
+										_n(
+											'%d needs attention',
+											'%d need attention',
+											saved.vulnerability.findings,
+											'teksecurity'
+										),
+										saved.vulnerability.findings
+									)
+							  )
+							: __(
+									'Matches your installed plugins against the advisory feed.',
+									'teksecurity'
+							  )
+					}
 				>
 					<button
 						type="button"

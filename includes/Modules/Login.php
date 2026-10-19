@@ -75,7 +75,11 @@ class Login {
 				sprintf(
 					/* translators: %s: human readable time difference, e.g. "28 minutes". */
 					__( '<strong>Too many failed attempts.</strong> This address is locked out for another %s.', 'teksecurity' ),
-					human_time_diff( time(), strtotime( $lock['expiresAt'] ) )
+					// expires_at is stored in the site's own timezone, so it has
+					// to be converted before it can be compared with time().
+					// strtotime() would read it as UTC and a 30 minute lockout
+					// would be announced as "7 hours" on any site that is not.
+					human_time_diff( time(), (int) get_gmt_from_date( $lock['expiresAt'], 'U' ) )
 				)
 			);
 		}
@@ -298,7 +302,9 @@ class Login {
 					'country'   => $row['country'],
 					'username'  => $row['username'],
 					'tries'     => (int) $row['tries'],
-					'expiresAt' => $row['expires_at'],
+					// ISO 8601, so the admin can format it in the reader's own
+					// timezone the way it formats every other time it shows.
+					'expiresAt' => gmdate( 'c', (int) get_gmt_from_date( $row['expires_at'], 'U' ) ),
 					'until'     => mysql2date( 'H:i', $row['expires_at'] ),
 				);
 			},

@@ -100,6 +100,17 @@ export default function EventDrawer( {
 		}
 	};
 
+	// An exclusion says "skip this rule on this path". That only means
+	// something for a rule a path can be matched against: a firewall
+	// signature, a rate-limit rule or a virtual patch. A brute-force lockout
+	// and the IP blocklist are decided by who is asking, not what they asked
+	// for, so offering the button there would promise something the exclusion
+	// cannot deliver.
+	const canExclude =
+		!! event &&
+		! [ 'brute', 'upload' ].includes( event.type ) &&
+		event.ruleId !== 'TS-IP-0001';
+
 	const facts = event
 		? [
 				[
@@ -235,7 +246,7 @@ export default function EventDrawer( {
 								{ __( 'All from this IP', 'teksecurity' ) }
 							</button>
 
-							{ isAdv && (
+							{ isAdv && canExclude && (
 								<button
 									type="button"
 									className="ts-button"

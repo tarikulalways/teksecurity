@@ -78,6 +78,29 @@ function buildBanner( data, go, setFw ) {
 		};
 	}
 
+	if ( data.integrity.issues > 0 ) {
+		return {
+			tone: 'bad',
+			icon: 'ph-shield-warning',
+			title: sprintf(
+				/* translators: %d: number of core files that do not match. */
+				_n(
+					'%d core file does not match WordPress',
+					'%d core files do not match WordPress',
+					data.integrity.issues,
+					'teksecurity'
+				),
+				data.integrity.issues
+			),
+			desc: __(
+				'A file in wp-admin or wp-includes was changed, removed or added since WordPress shipped it. That is how a break-in usually shows up.',
+				'teksecurity'
+			),
+			action: __( 'See which files', 'teksecurity' ),
+			onAction: () => go( 'settings' ),
+		};
+	}
+
 	if ( data.exposed.length ) {
 		return {
 			tone: 'warn',
@@ -102,6 +125,29 @@ function buildBanner( data, go, setFw ) {
 			),
 			action: __( 'Fix now', 'teksecurity' ),
 			onAction: () => go( 'plugins' ),
+		};
+	}
+
+	if ( data.twofactor.enabled && data.twofactor.notSetUp > 0 ) {
+		return {
+			tone: 'warn',
+			icon: 'ph-shield-warning',
+			title: sprintf(
+				/* translators: %d: number of accounts without two-factor. */
+				_n(
+					'%d account still has no second factor',
+					'%d accounts still have no second factor',
+					data.twofactor.notSetUp,
+					'teksecurity'
+				),
+				data.twofactor.notSetUp
+			),
+			desc: __(
+				'Two-factor is required for them but not set up yet, so a stolen password is still enough to sign in.',
+				'teksecurity'
+			),
+			action: __( 'Review accounts', 'teksecurity' ),
+			onAction: () => go( 'twofa' ),
 		};
 	}
 
@@ -200,11 +246,29 @@ export default function Overview( { go, openEvent, toast } ) {
 		{
 			label: __( 'Attacking IPs', 'teksecurity' ),
 			value: data.summary.uniqueIps,
-			sub: sprintf(
-				/* translators: %d: number of addresses on the blocklist. */
-				__( '%d on your blocklist', 'teksecurity' ),
-				data.summary.blocklistedIps
-			),
+			// A lockout in progress is the more urgent of the two numbers, so
+			// it takes the line when there is one.
+			sub: data.lockouts
+				? sprintf(
+						/* translators: %d: number of addresses locked out right now. */
+						_n(
+							'%d locked out right now',
+							'%d locked out right now',
+							data.lockouts,
+							'teksecurity'
+						),
+						data.lockouts
+				  )
+				: sprintf(
+						/* translators: %d: number of addresses on the blocklist. */
+						_n(
+							'%d on your blocklist',
+							'%d on your blocklist',
+							data.summary.blocklistedIps,
+							'teksecurity'
+						),
+						data.summary.blocklistedIps
+				  ),
 		},
 		{
 			label: __( 'Protections running', 'teksecurity' ),

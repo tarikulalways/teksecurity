@@ -9,6 +9,7 @@ namespace TekSecurity\Modules;
 
 use TekSecurity\Core\Options;
 use TekSecurity\Core\Plugin;
+use TekSecurity\Helpers\Input;
 use TekSecurity\Helpers\Ip;
 use TekSecurity\Helpers\IpList;
 use TekSecurity\Helpers\Logger;
@@ -67,9 +68,17 @@ class Hardening {
 			return;
 		}
 
-		$rule = $this->matching_rule( Firewall::uri() );
+		$rule = $this->matching_rule( Input::uri() );
 
 		if ( ! $rule ) {
+			return;
+		}
+
+		// An exclusion added from the traffic log names the rule id that was
+		// logged, so the limiter has to honour it too - otherwise "skip this
+		// rule here" silently does nothing for the rate-limit rows, which are
+		// the ones people most often need to exclude.
+		if ( Firewall::is_excluded( self::rule_id( $rule ) ) ) {
 			return;
 		}
 
@@ -110,8 +119,7 @@ class Hardening {
 			if ( '/*' === $pattern ) {
 				$hit = true;
 			} elseif ( '/?s=*' === $pattern ) {
-				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				$hit = isset( $_GET['s'] );
+				$hit = null !== Input::query_value( 's' );
 			} elseif ( false !== strpos( $pattern, '*' ) ) {
 				$hit = 0 === strpos( $path, rtrim( $pattern, '*' ) );
 			} else {
@@ -132,6 +140,19 @@ class Hardening {
 	}
 
 	/**
+	 * The rule identifier a rate-limit event is logged under.
+	 *
+	 * Defined once so the id written to the log and the id an exclusion is
+	 * matched against cannot drift apart.
+	 *
+	 * @param array $rule The rule.
+	 * @return string
+	 */
+	protected static function rule_id( array $rule ) {
+		return 'TS-RL-' . strtoupper( substr( $rule['key'], 0, 8 ) );
+	}
+
+	/**
 	 * Throttle or block a request that went over its limit.
 	 *
 	 * @param array  $rule  The rule that matched.
@@ -145,7 +166,7 @@ class Hardening {
 		Logger::record(
 			array(
 				'attack_type' => 'rate',
-				'rule_id'     => 'TS-RL-' . strtoupper( substr( $rule['key'], 0, 8 ) ),
+				'rule_id'     => self::rule_id( $rule ),
 				'rule_name'   => sprintf( '%s rate limit', $rule['name'] ),
 				'action'      => 'blocked',
 				'method'      => Firewall::method(),
@@ -450,13 +471,13 @@ class Hardening {
 	 * @return void
 	 */
 	public function block_author_enumeration() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( is_admin() || is_user_logged_in() || ! isset( $_GET['author'] ) ) {
+		$author = Input::query_value( 'author' );
+
+		if ( is_admin() || is_user_logged_in() || null === $author ) {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$author = sanitize_text_field( wp_unslash( $_GET['author'] ) );
+		$author = sanitize_text_field( $author );
 
 		if ( ! is_numeric( $author ) ) {
 			return;
