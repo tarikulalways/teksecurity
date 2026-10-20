@@ -36,6 +36,38 @@ defined( 'ABSPATH' ) || exit;
  *
  * Keys are a different matter: a key is only ever used as a label, never
  * matched, so keys are passed through `sanitize_key()` as they are read.
+ *
+ * Why there is no nonce check anywhere in this class
+ * --------------------------------------------------
+ *
+ * A nonce answers "did this request come from a form this site gave the current
+ * user?". Nothing here is handling a form. This class is the firewall reading
+ * *somebody else's* request — usually an attacker's — on `plugins_loaded`,
+ * before WordPress has routed anything, so that the signatures can be matched
+ * against it. An attacker's request carries no nonce, and demanding one would
+ * mean the firewall inspected nothing and blocked nothing.
+ *
+ * It is safe to read without one because reading is all that happens. Every
+ * method here returns a bounded string, and that string is only ever used as
+ * the subject of `preg_match()`. No value read here is stored as a setting,
+ * written to the database as data, echoed to a page, used in a redirect, or
+ * allowed to decide what the plugin does on anyone's behalf; the only decision
+ * taken from these values is "does this request match a signature", and the
+ * only outcome is logging it and, for the visitor who sent it, a 403.
+ *
+ * Nonces and capabilities live where they belong instead, at the points where
+ * the plugin does act on input:
+ *
+ *   - admin    every route in `includes/API/` is registered with a
+ *              `permission_callback` that calls `current_user_can()`, and the
+ *              React admin sends the `wp_rest` nonce it is handed through
+ *              `wp_localize_script()` (see Core\Admin::boot_data()).
+ *   - login    the two-factor screens verify a nonce with
+ *              `check_admin_referer()` and a single-use login token on top of
+ *              it (see Modules\TwoFactorScreen).
+ *
+ * So each `phpcs:ignore WordPress.Security.NonceVerification` below is read-only
+ * firewall inspection, not an unguarded form handler.
  */
 class Input {
 
@@ -128,6 +160,9 @@ class Input {
 	 * @return array
 	 */
 	public static function query() {
+		// No nonce: this is the firewall inspecting an incoming request, not a
+		// form submission. The values are bounded and only ever matched against
+		// a signature. See this class's documentation.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		return self::flatten_all( (array) $_GET, 'query' );
 	}
@@ -138,6 +173,8 @@ class Input {
 	 * @return array
 	 */
 	public static function body() {
+		// No nonce: firewall inspection only, as above. Nothing read here is
+		// acted on, stored as data or printed.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		return self::flatten_all( (array) $_POST, 'body' );
 	}
@@ -152,6 +189,7 @@ class Input {
 	 * @return array
 	 */
 	public static function cookies() {
+		// No nonce: firewall inspection only. See this class's documentation.
 		$out = array();
 
 		foreach ( (array) $_COOKIE as $key => $value ) {
@@ -172,6 +210,7 @@ class Input {
 	 * @return string|null
 	 */
 	public static function query_value( $key ) {
+		// No nonce: firewall inspection only. See this class's documentation.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( ! isset( $_GET[ $key ] ) ) {
 			return null;
@@ -191,6 +230,7 @@ class Input {
 	 * @return string|null
 	 */
 	public static function request_value( $key ) {
+		// No nonce: firewall inspection only. See this class's documentation.
 		// phpcs:disable WordPress.Security.NonceVerification
 		if ( isset( $_POST[ $key ] ) ) {
 			$value = $_POST[ $key ]; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
