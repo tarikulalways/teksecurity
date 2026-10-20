@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-19T16:55:37+00:00\n"
+"POT-Creation-Date: 2026-10-20T13:02:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: teksecurity\n"
@@ -42,7 +42,7 @@ msgid "Learning"
 msgstr ""
 
 #: includes/API/OverviewController.php:171
-#: src/pages/Firewall.jsx:142
+#: src/pages/Firewall.jsx:167
 msgid "Log only"
 msgstr ""
 
@@ -59,12 +59,12 @@ msgstr ""
 msgid "The update could not be installed. Try updating from the Plugins screen."
 msgstr ""
 
-#: includes/API/SettingsController.php:144
-#: src/pages/Settings.jsx:163
+#: includes/API/SettingsController.php:165
+#: src/pages/Settings.jsx:189
 msgid "Enter a valid email address, or choose Nothing below."
 msgstr ""
 
-#: includes/API/SettingsController.php:201
+#: includes/API/SettingsController.php:222
 #: src/components/Wizard.jsx:286
 msgid "Enter a valid email address, or choose Nothing."
 msgstr ""
@@ -145,27 +145,27 @@ msgstr ""
 msgid "TekSecurity: the admin bundle is missing. Run \"npm install && npm run build\" in the plugin folder."
 msgstr ""
 
-#: includes/Core/Options.php:244
+#: includes/Core/Options.php:289
 msgid "All requests"
 msgstr ""
 
-#: includes/Core/Options.php:245
+#: includes/Core/Options.php:290
 msgid "Login page"
 msgstr ""
 
-#: includes/Core/Options.php:246
+#: includes/Core/Options.php:291
 msgid "REST API"
 msgstr ""
 
-#: includes/Core/Options.php:247
+#: includes/Core/Options.php:292
 msgid "Admin AJAX"
 msgstr ""
 
-#: includes/Core/Options.php:248
+#: includes/Core/Options.php:293
 msgid "Site search"
 msgstr ""
 
-#: includes/Core/Options.php:249
+#: includes/Core/Options.php:294
 msgid "XML-RPC"
 msgstr ""
 
@@ -342,103 +342,103 @@ msgid "File-upload protection"
 msgstr ""
 
 #: includes/Helpers/Rules.php:141
-#: src/pages/LoginProtection.jsx:49
+#: src/pages/LoginProtection.jsx:50
 msgid "Brute-force protection"
 msgstr ""
 
-#: includes/Helpers/Rules.php:310
+#: includes/Helpers/Rules.php:316
 msgid "UNION-based SQL injection"
 msgstr ""
 
-#: includes/Helpers/Rules.php:311
+#: includes/Helpers/Rules.php:317
 msgid "Time-based blind SQL injection"
 msgstr ""
 
-#: includes/Helpers/Rules.php:312
+#: includes/Helpers/Rules.php:318
 msgid "Boolean-based SQL injection"
 msgstr ""
 
-#: includes/Helpers/Rules.php:313
+#: includes/Helpers/Rules.php:319
 msgid "Stacked query or table read"
 msgstr ""
 
-#: includes/Helpers/Rules.php:314
+#: includes/Helpers/Rules.php:320
 msgid "Event-handler injection"
 msgstr ""
 
-#: includes/Helpers/Rules.php:315
+#: includes/Helpers/Rules.php:321
 msgid "Injected code in comment"
 msgstr ""
 
-#: includes/Helpers/Rules.php:316
+#: includes/Helpers/Rules.php:322
 msgid "Script URI in parameter"
 msgstr ""
 
-#: includes/Helpers/Rules.php:319
+#: includes/Helpers/Rules.php:325
 msgid "REST request with forged nonce"
 msgstr ""
 
-#: includes/Helpers/Rules.php:320
+#: includes/Helpers/Rules.php:326
 msgid "Password-reset key tampering"
 msgstr ""
 
-#: includes/Helpers/Rules.php:321
+#: includes/Helpers/Rules.php:327
 msgid "Unauthorised option update"
 msgstr ""
 
-#: includes/Helpers/Rules.php:322
+#: includes/Helpers/Rules.php:328
 msgid "Role change by low-privilege user"
 msgstr ""
 
-#: includes/Helpers/Rules.php:323
+#: includes/Helpers/Rules.php:329
 msgid "Executable disguised as a document"
 msgstr ""
 
-#: includes/Helpers/Rules.php:324
+#: includes/Helpers/Rules.php:330
 msgid "Blocked file extension"
 msgstr ""
 
-#: includes/Helpers/Rules.php:325
+#: includes/Helpers/Rules.php:331
 msgid "Sensitive file probe"
 msgstr ""
 
-#: includes/Helpers/Rules.php:326
+#: includes/Helpers/Rules.php:332
 msgid "Known attack tool"
 msgstr ""
 
-#: includes/Helpers/Rules.php:327
+#: includes/Helpers/Rules.php:333
 msgid "Author enumeration"
 msgstr ""
 
-#: includes/Helpers/Rules.php:328
+#: includes/Helpers/Rules.php:334
 msgid "Path traversal"
 msgstr ""
 
-#: includes/Helpers/Rules.php:329
+#: includes/Helpers/Rules.php:335
 msgid "PHP object injection"
 msgstr ""
 
-#: includes/Helpers/Rules.php:330
+#: includes/Helpers/Rules.php:336
 msgid "Remote code execution"
 msgstr ""
 
-#: includes/Helpers/Rules.php:331
+#: includes/Helpers/Rules.php:337
 msgid "PHP wrapper in parameter"
 msgstr ""
 
-#: includes/Helpers/Rules.php:332
+#: includes/Helpers/Rules.php:338
 msgid "Login attempt limit exceeded"
 msgstr ""
 
-#: includes/Helpers/Rules.php:333
+#: includes/Helpers/Rules.php:339
 msgid "Login attempt with a blocked username"
 msgstr ""
 
-#: includes/Helpers/Rules.php:334
+#: includes/Helpers/Rules.php:340
 msgid "XML-RPC logins are turned off"
 msgstr ""
 
-#: includes/Helpers/Rules.php:335
+#: includes/Helpers/Rules.php:341
 msgid "Address is on your blocklist"
 msgstr ""
 
@@ -554,12 +554,12 @@ msgid "Weekly security summary for %s"
 msgstr ""
 
 #. translators: %s: file extension, e.g. "php".
-#: includes/Modules/Hardening.php:213
+#: includes/Modules/Hardening.php:234
 #, php-format
 msgid "Files ending in .%s are blocked because they can run code on the server."
 msgstr ""
 
-#: includes/Modules/Hardening.php:236
+#: includes/Modules/Hardening.php:257
 msgid "This file contains code that could run on your server, so it was not saved."
 msgstr ""
 
@@ -573,11 +573,11 @@ msgstr ""
 msgid "<strong>Too many failed attempts.</strong> This address is locked out for another %s."
 msgstr ""
 
-#: includes/Modules/Login.php:101
+#: includes/Modules/Login.php:105
 msgid "<strong>Blocked.</strong> That username is not allowed to sign in from this address."
 msgstr ""
 
-#: includes/Modules/Login.php:241
+#: includes/Modules/Login.php:245
 msgid "<strong>Sign-in failed.</strong> Check the username and password and try again."
 msgstr ""
 
@@ -613,7 +613,7 @@ msgid "That code didn’t match. Codes change every 30 seconds, so try the newes
 msgstr ""
 
 #. translators: 1: site name, 2: profile URL.
-#: includes/Modules/TwoFactor.php:846
+#: includes/Modules/TwoFactor.php:871
 #, php-format
 msgid ""
 "Your account on %1$s needs two-factor authentication.\n"
@@ -622,47 +622,47 @@ msgid ""
 msgstr ""
 
 #. translators: %s: formatted date.
-#: includes/Modules/TwoFactor.php:854
+#: includes/Modules/TwoFactor.php:879
 #, php-format
 msgid "Please finish by %s."
 msgstr ""
 
-#: includes/Modules/TwoFactor.php:861
+#: includes/Modules/TwoFactor.php:886
 msgid "Set up two-factor authentication"
 msgstr ""
 
-#: includes/Modules/TwoFactor.php:901
+#: includes/Modules/TwoFactor.php:926
 #: src/pages/TwoFactor.jsx:202
 msgid "Two-factor authentication"
 msgstr ""
 
-#: includes/Modules/TwoFactor.php:904
+#: includes/Modules/TwoFactor.php:929
 msgid "Status"
 msgstr ""
 
-#: includes/Modules/TwoFactor.php:909
+#: includes/Modules/TwoFactor.php:934
 msgid "Not required for this account."
 msgstr ""
 
 #. translators: %s: method name.
-#: includes/Modules/TwoFactor.php:913
+#: includes/Modules/TwoFactor.php:938
 #, php-format
 msgid "Active using %s."
 msgstr ""
 
-#: includes/Modules/TwoFactor.php:914
+#: includes/Modules/TwoFactor.php:939
 msgid "an authenticator app"
 msgstr ""
 
-#: includes/Modules/TwoFactor.php:914
+#: includes/Modules/TwoFactor.php:939
 msgid "email codes"
 msgstr ""
 
-#: includes/Modules/TwoFactor.php:917
+#: includes/Modules/TwoFactor.php:942
 msgid "Required, but not set up yet."
 msgstr ""
 
-#: includes/Modules/TwoFactor.php:923
+#: includes/Modules/TwoFactor.php:948
 msgid "Manage in TekSecurity"
 msgstr ""
 
@@ -838,96 +838,96 @@ msgstr ""
 msgid "%s skipped on this path"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:106
+#: src/components/EventDrawer.jsx:117
 msgid "IP address"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:111
+#: src/components/EventDrawer.jsx:122
 msgid "Page"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:112
+#: src/components/EventDrawer.jsx:123
 msgid "Protection"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:114
+#: src/components/EventDrawer.jsx:125
 msgid "Result"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:116
+#: src/components/EventDrawer.jsx:127
 msgid "Blocked with 403"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:117
+#: src/components/EventDrawer.jsx:128
 msgid "Allowed, logged for review"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:125
+#: src/components/EventDrawer.jsx:136
 msgid "Method and URL"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:128
+#: src/components/EventDrawer.jsx:139
 msgid "Matched in"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:129
+#: src/components/EventDrawer.jsx:140
 msgid "Payload"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:131
+#: src/components/EventDrawer.jsx:142
 #: src/pages/Traffic.jsx:187
 msgid "Rule"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:134
+#: src/components/EventDrawer.jsx:145
 msgid "User agent"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:143
-#: src/components/EventDrawer.jsx:186
+#: src/components/EventDrawer.jsx:154
+#: src/components/EventDrawer.jsx:197
 #: src/components/TwoFactorModal.jsx:165
 #: src/components/TwoFactorModal.jsx:191
 msgid "Close"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:150
+#: src/components/EventDrawer.jsx:161
 msgid "Request details"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:171
+#: src/components/EventDrawer.jsx:182
 #: src/pages/Traffic.jsx:140
 #: src/pages/Traffic.jsx:237
 msgid "Blocked"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:172
+#: src/components/EventDrawer.jsx:183
 #: src/pages/Traffic.jsx:141
 #: src/pages/Traffic.jsx:238
 msgid "Logged"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:210
+#: src/components/EventDrawer.jsx:221
 #: src/pages/Traffic.jsx:183
 msgid "Request"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:235
+#: src/components/EventDrawer.jsx:246
 msgid "All from this IP"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:246
+#: src/components/EventDrawer.jsx:257
 msgid "Rule excluded"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:247
+#: src/components/EventDrawer.jsx:258
 msgid "Exclude rule here"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:261
+#: src/components/EventDrawer.jsx:272
 msgid "IP is on blocklist"
 msgstr ""
 
-#: src/components/EventDrawer.jsx:262
+#: src/components/EventDrawer.jsx:273
 msgid "Block this IP"
 msgstr ""
 
@@ -1134,20 +1134,20 @@ msgid "Learning for 7 days"
 msgstr ""
 
 #: src/components/Wizard.jsx:215
-#: src/pages/Settings.jsx:37
-#: src/pages/Settings.jsx:149
+#: src/pages/Settings.jsx:49
+#: src/pages/Settings.jsx:175
 msgid "Alerts"
 msgstr ""
 
 #: src/components/Wizard.jsx:220
 #: src/components/Wizard.jsx:304
-#: src/pages/Settings.jsx:179
+#: src/pages/Settings.jsx:205
 msgid "Critical attacks"
 msgstr ""
 
 #: src/components/Wizard.jsx:221
 #: src/components/Wizard.jsx:308
-#: src/pages/Settings.jsx:181
+#: src/pages/Settings.jsx:207
 msgid "Every block"
 msgstr ""
 
@@ -1158,7 +1158,7 @@ msgid "Step %d of 4"
 msgstr ""
 
 #: src/components/Wizard.jsx:276
-#: src/pages/Settings.jsx:154
+#: src/pages/Settings.jsx:180
 msgid "Alert email"
 msgstr ""
 
@@ -1167,17 +1167,17 @@ msgid "Usually the site administrator’s address."
 msgstr ""
 
 #: src/components/Wizard.jsx:296
-#: src/pages/Settings.jsx:172
+#: src/pages/Settings.jsx:198
 msgid "Send an email for"
 msgstr ""
 
 #: src/components/Wizard.jsx:299
-#: src/pages/Settings.jsx:174
+#: src/pages/Settings.jsx:200
 msgid "Alert level"
 msgstr ""
 
 #: src/components/Wizard.jsx:310
-#: src/pages/Settings.jsx:182
+#: src/pages/Settings.jsx:208
 msgid "Nothing"
 msgstr ""
 
@@ -1199,12 +1199,12 @@ msgstr ""
 msgid "Yesterday %s"
 msgstr ""
 
-#: src/lib/format.js:55
+#: src/lib/format.js:75
 msgid "just now"
 msgstr ""
 
 #. translators: %d: number of minutes.
-#: src/lib/format.js:61
+#: src/lib/format.js:81
 #, js-format
 msgid "%d min ago"
 msgid_plural "%d min ago"
@@ -1212,7 +1212,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of hours.
-#: src/lib/format.js:70
+#: src/lib/format.js:90
 #, js-format
 msgid "%d h ago"
 msgid_plural "%d h ago"
@@ -1220,17 +1220,17 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: clock time.
-#: src/lib/format.js:91
+#: src/lib/format.js:111
 #, js-format
 msgid "Today %s"
 msgstr ""
 
-#: src/lib/format.js:107
+#: src/lib/format.js:127
 msgid "Today"
 msgstr ""
 
 #: src/pages/Firewall.jsx:38
-#: src/pages/Overview.jsx:167
+#: src/pages/Overview.jsx:213
 msgid "Firewall is now blocking attacks"
 msgstr ""
 
@@ -1269,43 +1269,63 @@ msgstr ""
 #. translators: %d: number of signatures.
 #: src/pages/Firewall.jsx:92
 #, js-format
-msgid "%d signatures"
+msgid "%d signature"
+msgid_plural "%d signatures"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: rule count phrase, 2: match count phrase, both already pluralised.
+#: src/pages/Firewall.jsx:124
+#, js-format
+msgid "%1$s · %2$s this week"
 msgstr ""
 
-#. translators: 1: rule count, 2: match count.
-#: src/pages/Firewall.jsx:119
+#. translators: %d: number of signatures in this module.
+#: src/pages/Firewall.jsx:130
 #, js-format
-msgid "%1$d rules · %2$d matches this week"
-msgstr ""
+msgid "%d rule"
+msgid_plural "%d rules"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of matches.
+#: src/pages/Firewall.jsx:140
+#, js-format
+msgid "%d match"
+msgid_plural "%d matches"
+msgstr[0] ""
+msgstr[1] ""
 
 #. translators: %d: number of attempts stopped.
-#: src/pages/Firewall.jsx:128
+#: src/pages/Firewall.jsx:151
 #, js-format
-msgid "%d attempts stopped this week"
-msgstr ""
+msgid "%d attempt stopped this week"
+msgid_plural "%d attempts stopped this week"
+msgstr[0] ""
+msgstr[1] ""
 
-#: src/pages/Firewall.jsx:141
+#: src/pages/Firewall.jsx:166
 msgid "Block"
 msgstr ""
 
-#: src/pages/Firewall.jsx:163
+#: src/pages/Firewall.jsx:188
 msgid "Rule exclusions"
 msgstr ""
 
-#: src/pages/Firewall.jsx:168
+#: src/pages/Firewall.jsx:193
 msgid "Rules skipped on specific paths. Add one from a request in the traffic log."
 msgstr ""
 
-#: src/pages/Firewall.jsx:191
+#: src/pages/Firewall.jsx:216
 msgid "Exclusion removed"
 msgstr ""
 
-#: src/pages/Firewall.jsx:199
+#: src/pages/Firewall.jsx:224
 #: src/pages/Ips.jsx:177
 msgid "Remove"
 msgstr ""
 
-#: src/pages/Firewall.jsx:205
+#: src/pages/Firewall.jsx:230
 msgid "No exclusions. Every rule runs on every path."
 msgstr ""
 
@@ -1370,100 +1390,100 @@ msgid "No IPs in this list."
 msgstr ""
 
 #. translators: %s: IP address.
-#: src/pages/LoginProtection.jsx:40
+#: src/pages/LoginProtection.jsx:41
 #, js-format
 msgid "%s unlocked"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:56
+#: src/pages/LoginProtection.jsx:57
 msgid "Brute-force protection turned on"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:60
+#: src/pages/LoginProtection.jsx:61
 msgid "Brute-force protection turned off"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:68
+#: src/pages/LoginProtection.jsx:69
 msgid "Lockout rules"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:70
+#: src/pages/LoginProtection.jsx:71
 msgid "Failed attempts before lockout"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:74
+#: src/pages/LoginProtection.jsx:75
 msgid "Counted per IP address."
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:79
+#: src/pages/LoginProtection.jsx:80
 msgid "Fewer attempts"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:92
+#: src/pages/LoginProtection.jsx:93
 msgid "More attempts"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:106
+#: src/pages/LoginProtection.jsx:107
 msgid "Lockout duration"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:110
-#: src/pages/LoginProtection.jsx:124
+#: src/pages/LoginProtection.jsx:111
+#: src/pages/LoginProtection.jsx:125
 msgid "15 minutes"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:111
+#: src/pages/LoginProtection.jsx:112
 msgid "30 minutes"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:112
-#: src/pages/LoginProtection.jsx:125
+#: src/pages/LoginProtection.jsx:113
+#: src/pages/LoginProtection.jsx:126
 msgid "1 hour"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:113
+#: src/pages/LoginProtection.jsx:114
 msgid "24 hours"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:119
+#: src/pages/LoginProtection.jsx:120
 msgid "Counting window"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:123
+#: src/pages/LoginProtection.jsx:124
 msgid "5 minutes"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:133
+#: src/pages/LoginProtection.jsx:134
 msgid "Block logins as “admin”"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:136
+#: src/pages/LoginProtection.jsx:137
 msgid "Anyone trying the username “admin” is locked out at once — except on this site, where “admin” is a real account, so it is left alone. Rename that account to make the rule count."
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:140
+#: src/pages/LoginProtection.jsx:141
 msgid "Anyone trying the username “admin” is locked out at once. Most sites don’t use it."
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:147
+#: src/pages/LoginProtection.jsx:148
 msgid "Block logins as admin"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:154
-#: src/pages/LoginProtection.jsx:161
+#: src/pages/LoginProtection.jsx:155
+#: src/pages/LoginProtection.jsx:162
 msgid "Block XML-RPC logins"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:155
+#: src/pages/LoginProtection.jsx:156
 msgid "Stops password guessing through xmlrpc.php. Turn off if you use the Jetpack app."
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:169
+#: src/pages/LoginProtection.jsx:170
 msgid "Locked out now"
 msgstr ""
 
 #. translators: %d: number of locked out addresses.
-#: src/pages/LoginProtection.jsx:172
+#: src/pages/LoginProtection.jsx:173
 #, js-format
 msgid "%d IP"
 msgid_plural "%d IPs"
@@ -1471,16 +1491,18 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: attempt count, 2: username, 3: clock time.
-#: src/pages/LoginProtection.jsx:197
+#: src/pages/LoginProtection.jsx:198
 #, js-format
-msgid "%1$d failed logins as “%2$s” · until %3$s"
-msgstr ""
+msgid "%1$d failed login as “%2$s” · until %3$s"
+msgid_plural "%1$d failed logins as “%2$s” · until %3$s"
+msgstr[0] ""
+msgstr[1] ""
 
-#: src/pages/LoginProtection.jsx:212
+#: src/pages/LoginProtection.jsx:215
 msgid "Unlock"
 msgstr ""
 
-#: src/pages/LoginProtection.jsx:218
+#: src/pages/LoginProtection.jsx:221
 msgid "No IPs are locked out right now."
 msgstr ""
 
@@ -1520,8 +1542,24 @@ msgstr[1] ""
 msgid "Review"
 msgstr ""
 
-#. translators: %d: number of exposed plugins.
+#. translators: %d: number of core files that do not match.
 #: src/pages/Overview.jsx:87
+#, js-format
+msgid "%d core file does not match WordPress"
+msgid_plural "%d core files do not match WordPress"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/pages/Overview.jsx:95
+msgid "A file in wp-admin or wp-includes was changed, removed or added since WordPress shipped it. That is how a break-in usually shows up."
+msgstr ""
+
+#: src/pages/Overview.jsx:99
+msgid "See which files"
+msgstr ""
+
+#. translators: %d: number of exposed plugins.
+#: src/pages/Overview.jsx:110
 #, js-format
 msgid "%d plugin is exposed"
 msgid_plural "%d plugins are exposed"
@@ -1529,114 +1567,140 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: comma separated plugin names.
-#: src/pages/Overview.jsx:97
+#: src/pages/Overview.jsx:120
 #, js-format
 msgid "%s has a known vulnerability and no shield. Update or turn on its shield."
 msgstr ""
 
-#: src/pages/Overview.jsx:103
+#: src/pages/Overview.jsx:126
 msgid "Fix now"
 msgstr ""
 
+#. translators: %d: number of accounts without two-factor.
+#: src/pages/Overview.jsx:137
+#, js-format
+msgid "%d account still has no second factor"
+msgid_plural "%d accounts still have no second factor"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/pages/Overview.jsx:145
+msgid "Two-factor is required for them but not set up yet, so a stolen password is still enough to sign in."
+msgstr ""
+
+#: src/pages/Overview.jsx:149
+msgid "Review accounts"
+msgstr ""
+
 #. translators: %s: site host name.
-#: src/pages/Overview.jsx:113
+#: src/pages/Overview.jsx:159
 #, js-format
 msgid "%s is protected"
 msgstr ""
 
 #. translators: 1: number of protections, 2: relative time.
-#: src/pages/Overview.jsx:119
+#: src/pages/Overview.jsx:165
 #, js-format
 msgid "All %1$d protections are running. Last attack blocked %2$s."
 msgstr ""
 
 #. translators: %d: number of protections.
-#: src/pages/Overview.jsx:128
+#: src/pages/Overview.jsx:174
 #, js-format
 msgid "All %d protections are running. Nothing has been blocked this week."
 msgstr ""
 
-#: src/pages/Overview.jsx:168
+#: src/pages/Overview.jsx:214
 msgid "Firewall mode updated"
 msgstr ""
 
-#: src/pages/Overview.jsx:183
+#: src/pages/Overview.jsx:229
 msgid "Blocked today"
 msgstr ""
 
 #. translators: %d: number blocked yesterday.
-#: src/pages/Overview.jsx:187
+#: src/pages/Overview.jsx:233
 #, js-format
 msgid "%d yesterday"
 msgstr ""
 
-#: src/pages/Overview.jsx:192
+#: src/pages/Overview.jsx:238
 msgid "Blocked this week"
 msgstr ""
 
 #. translators: %d: number of logged-only requests.
-#: src/pages/Overview.jsx:196
+#: src/pages/Overview.jsx:242
 #, js-format
 msgid "%d more logged only"
 msgstr ""
 
-#: src/pages/Overview.jsx:201
+#: src/pages/Overview.jsx:247
 msgid "Attacking IPs"
 msgstr ""
 
+#. translators: %d: number of addresses locked out right now.
+#: src/pages/Overview.jsx:254
+#, js-format
+msgid "%d locked out right now"
+msgid_plural "%d locked out right now"
+msgstr[0] ""
+msgstr[1] ""
+
 #. translators: %d: number of addresses on the blocklist.
-#: src/pages/Overview.jsx:205
+#: src/pages/Overview.jsx:264
 #, js-format
 msgid "%d on your blocklist"
-msgstr ""
+msgid_plural "%d on your blocklist"
+msgstr[0] ""
+msgstr[1] ""
 
-#: src/pages/Overview.jsx:210
+#: src/pages/Overview.jsx:274
 msgid "Protections running"
 msgstr ""
 
-#: src/pages/Overview.jsx:214
+#: src/pages/Overview.jsx:278
 msgid "All active"
 msgstr ""
 
 #. translators: %d: number of protections needing attention.
-#: src/pages/Overview.jsx:217
+#: src/pages/Overview.jsx:281
 #, js-format
 msgid "%d need attention"
 msgstr ""
 
-#: src/pages/Overview.jsx:268
+#: src/pages/Overview.jsx:332
 msgid "Blocked requests"
 msgstr ""
 
-#: src/pages/Overview.jsx:269
+#: src/pages/Overview.jsx:333
 msgid "Last 7 days"
 msgstr ""
 
-#: src/pages/Overview.jsx:311
+#: src/pages/Overview.jsx:375
 msgid "Attack types"
 msgstr ""
 
-#: src/pages/Overview.jsx:318
+#: src/pages/Overview.jsx:382
 msgid "View log"
 msgstr ""
 
-#: src/pages/Overview.jsx:354
+#: src/pages/Overview.jsx:418
 msgid "Nothing has been blocked in the last 7 days."
 msgstr ""
 
-#: src/pages/Overview.jsx:365
+#: src/pages/Overview.jsx:429
 msgid "Latest attacks"
 msgstr ""
 
-#: src/pages/Overview.jsx:372
+#: src/pages/Overview.jsx:436
 msgid "See all"
 msgstr ""
 
-#: src/pages/Overview.jsx:400
+#: src/pages/Overview.jsx:464
 msgid "No attacks recorded yet."
 msgstr ""
 
-#: src/pages/Overview.jsx:405
+#: src/pages/Overview.jsx:469
 msgid "Protections"
 msgstr ""
 
@@ -1828,157 +1892,195 @@ msgstr ""
 msgid "Skip limits for administrators"
 msgstr ""
 
-#: src/pages/Settings.jsx:38
+#: src/pages/Settings.jsx:29
+msgid "Changed"
+msgstr ""
+
+#: src/pages/Settings.jsx:30
+msgid "Missing"
+msgstr ""
+
+#: src/pages/Settings.jsx:31
+msgid "Not part of WordPress"
+msgstr ""
+
+#: src/pages/Settings.jsx:50
 msgid "Who hears about an attack, and how often."
 msgstr ""
 
-#: src/pages/Settings.jsx:47
-#: src/pages/Settings.jsx:205
+#: src/pages/Settings.jsx:59
+#: src/pages/Settings.jsx:231
 msgid "Data"
 msgstr ""
 
-#: src/pages/Settings.jsx:48
+#: src/pages/Settings.jsx:60
 msgid "How long the log is kept and how visitor IPs are read."
 msgstr ""
 
-#: src/pages/Settings.jsx:56
-#: src/pages/Settings.jsx:256
+#: src/pages/Settings.jsx:68
+#: src/pages/Settings.jsx:282
 msgid "Scans"
 msgstr ""
 
-#: src/pages/Settings.jsx:57
+#: src/pages/Settings.jsx:69
 msgid "Core file integrity and plugin vulnerability checks."
 msgstr ""
 
-#: src/pages/Settings.jsx:65
+#: src/pages/Settings.jsx:77
 msgid "Shortcodes"
 msgstr ""
 
-#: src/pages/Settings.jsx:66
+#: src/pages/Settings.jsx:78
 msgid "Drop TekSecurity screens into your own pages."
 msgstr ""
 
-#: src/pages/Settings.jsx:125
+#: src/pages/Settings.jsx:151
 msgid "Settings saved"
 msgstr ""
 
-#: src/pages/Settings.jsx:157
+#: src/pages/Settings.jsx:183
 msgid "Alerts are sent from this site’s address."
 msgstr ""
 
-#: src/pages/Settings.jsx:189
-#: src/pages/Settings.jsx:196
+#: src/pages/Settings.jsx:215
+#: src/pages/Settings.jsx:222
 msgid "Weekly summary"
 msgstr ""
 
-#: src/pages/Settings.jsx:190
+#: src/pages/Settings.jsx:216
 msgid "Attacks blocked, plugin issues and lockouts, once a week."
 msgstr ""
 
-#: src/pages/Settings.jsx:208
+#: src/pages/Settings.jsx:234
 msgid "Keep traffic log for"
 msgstr ""
 
-#: src/pages/Settings.jsx:214
+#: src/pages/Settings.jsx:240
 #: src/pages/TwoFactor.jsx:357
 #: src/pages/TwoFactor.jsx:385
 msgid "7 days"
 msgstr ""
 
-#: src/pages/Settings.jsx:215
+#: src/pages/Settings.jsx:241
 #: src/pages/TwoFactor.jsx:389
 msgid "30 days"
 msgstr ""
 
-#: src/pages/Settings.jsx:216
+#: src/pages/Settings.jsx:242
 msgid "90 days"
 msgstr ""
 
-#: src/pages/Settings.jsx:222
+#: src/pages/Settings.jsx:248
 msgid "Visitor IP source"
 msgstr ""
 
-#: src/pages/Settings.jsx:225
+#: src/pages/Settings.jsx:251
 msgid "Wrong source makes every visitor look like one IP."
 msgstr ""
 
-#: src/pages/Settings.jsx:232
+#: src/pages/Settings.jsx:258
 msgid "REMOTE_ADDR (direct)"
 msgstr ""
 
-#: src/pages/Settings.jsx:236
+#: src/pages/Settings.jsx:262
 msgid "CF-Connecting-IP (Cloudflare)"
 msgstr ""
 
-#: src/pages/Settings.jsx:243
+#: src/pages/Settings.jsx:269
 msgid "X-Forwarded-For (other proxy)"
 msgstr ""
 
-#: src/pages/Settings.jsx:258
+#: src/pages/Settings.jsx:284
 msgid "Core file integrity"
 msgstr ""
 
-#. translators: 1: relative time, 2: files compared, 3: problems found.
-#: src/pages/Settings.jsx:263
+#. translators: 1: relative time, 2: files compared, 3: problems found, already pluralised.
+#: src/pages/Settings.jsx:289
 #, js-format
-msgid "Last run %1$s · %2$d files compared · %3$d problems"
+msgid "Last run %1$s · %2$d files compared · %3$s"
 msgstr ""
 
-#: src/pages/Settings.jsx:271
+#. translators: %d: number of problems found.
+#: src/pages/Settings.jsx:297
+#, js-format
+msgid "%d problem"
+msgid_plural "%d problems"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/pages/Settings.jsx:306
 msgid "Has not run yet."
 msgstr ""
 
-#: src/pages/Settings.jsx:281
+#: src/pages/Settings.jsx:316
 msgid "Integrity scan finished"
 msgstr ""
 
-#: src/pages/Settings.jsx:286
-#: src/pages/Settings.jsx:313
+#: src/pages/Settings.jsx:321
+#: src/pages/Settings.jsx:396
 msgid "Scanning…"
 msgstr ""
 
-#: src/pages/Settings.jsx:287
-#: src/pages/Settings.jsx:314
+#: src/pages/Settings.jsx:322
+#: src/pages/Settings.jsx:397
 msgid "Scan now"
 msgstr ""
 
-#: src/pages/Settings.jsx:292
+#: src/pages/Settings.jsx:329
+msgid "These core files do not match what WordPress.org published for your version."
+msgstr ""
+
+#: src/pages/Settings.jsx:353
 msgid "Plugin vulnerabilities"
 msgstr ""
 
-#: src/pages/Settings.jsx:293
+#. translators: 1: relative time, 2: plugins checked, 3: findings phrase, already pluralised.
+#: src/pages/Settings.jsx:358
+#, js-format
+msgid "Last run %1$s · %2$d plugins checked · %3$s"
+msgstr ""
+
+#. translators: %d: number of vulnerable plugins found.
+#: src/pages/Settings.jsx:366
+#, js-format
+msgid "%d needs attention"
+msgid_plural "%d need attention"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/pages/Settings.jsx:375
 msgid "Matches your installed plugins against the advisory feed."
 msgstr ""
 
-#: src/pages/Settings.jsx:305
+#: src/pages/Settings.jsx:388
 msgid "Vulnerability scan finished"
 msgstr ""
 
-#: src/pages/Settings.jsx:323
+#: src/pages/Settings.jsx:406
 msgid "No shortcodes yet"
 msgstr ""
 
-#: src/pages/Settings.jsx:324
+#: src/pages/Settings.jsx:407
 msgid "TekSecurity does not add any shortcodes at the moment. When the two-factor sign-in screen can be placed on your own page, its shortcode will be listed here to copy."
 msgstr ""
 
-#: src/pages/Settings.jsx:336
+#: src/pages/Settings.jsx:419
 msgid "Settings sections"
 msgstr ""
 
-#: src/pages/Settings.jsx:362
+#: src/pages/Settings.jsx:445
 msgid "Unsaved changes"
 msgstr ""
 
-#: src/pages/Settings.jsx:379
+#: src/pages/Settings.jsx:462
 msgid "Run setup again"
 msgstr ""
 
-#: src/pages/Settings.jsx:389
+#: src/pages/Settings.jsx:472
 msgid "Discard"
 msgstr ""
 
-#: src/pages/Settings.jsx:398
+#: src/pages/Settings.jsx:481
 msgid "Save settings"
 msgstr ""
 

@@ -7,6 +7,8 @@
 
 namespace TekSecurity\Core;
 
+use TekSecurity\Helpers\Endpoint;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -120,6 +122,8 @@ class Options {
 			if ( empty( self::$cache['ratelimit']['rules'] ) ) {
 				self::$cache['ratelimit']['rules'] = self::preset_rules( self::$cache['ratelimit']['preset'] );
 			}
+
+			self::$cache['ratelimit']['rules'] = self::relocate_rules( self::$cache['ratelimit']['rules'] );
 		}
 
 		return self::$cache;
@@ -210,11 +214,11 @@ class Options {
 		// translates them for display through self::rule_label().
 		$base = array(
 			array( 'site', 'All requests', '/*', 240 ),
-			array( 'login', 'Login page', '/wp-login.php', 10 ),
-			array( 'rest', 'REST API', '/wp-json/*', 120 ),
-			array( 'ajax', 'Admin AJAX', '/wp-admin/admin-ajax.php', 180 ),
+			array( 'login', 'Login page', Endpoint::login_path(), 10 ),
+			array( 'rest', 'REST API', Endpoint::rest_path() . '*', 120 ),
+			array( 'ajax', 'Admin AJAX', Endpoint::admin_ajax_path(), 180 ),
 			array( 'search', 'Site search', '/?s=*', 30 ),
-			array( 'xmlrpc', 'XML-RPC', '/xmlrpc.php', 0 ),
+			array( 'xmlrpc', 'XML-RPC', Endpoint::xmlrpc_path(), 0 ),
 		);
 
 		$rules = array();
@@ -227,6 +231,47 @@ class Options {
 				'limit' => $limit ? max( 1, (int) round( $limit * $factor ) ) : 0,
 				'on'    => true,
 			);
+		}
+
+		return $rules;
+	}
+
+	/**
+	 * Point the built-in rules at wherever their endpoint actually lives.
+	 *
+	 * A rule's path is stored, so a site that moved WordPress, renamed
+	 * `wp-admin/` or changed its REST prefix after the rules were first
+	 * written - or one upgrading from a release that wrote the stock paths
+	 * literally - would be left matching paths no request carries.
+	 *
+	 * Only a path still holding its stock value is moved. A path the owner has
+	 * edited is theirs, and is left exactly as they set it.
+	 *
+	 * @param array $rules Stored rate-limit rules.
+	 * @return array
+	 */
+	protected static function relocate_rules( $rules ) {
+		$stock = array(
+			'login'  => array( '/wp-login.php', Endpoint::login_path() ),
+			'rest'   => array( '/wp-json/*', Endpoint::rest_path() . '*' ),
+			'ajax'   => array( '/wp-admin/admin-ajax.php', Endpoint::admin_ajax_path() ),
+			'xmlrpc' => array( '/xmlrpc.php', Endpoint::xmlrpc_path() ),
+		);
+
+		foreach ( (array) $rules as $i => $rule ) {
+			if ( ! is_array( $rule ) || ! isset( $rule['key'], $rule['path'] ) ) {
+				continue;
+			}
+
+			if ( ! isset( $stock[ $rule['key'] ] ) ) {
+				continue;
+			}
+
+			list( $was, $now ) = $stock[ $rule['key'] ];
+
+			if ( $was === $rule['path'] ) {
+				$rules[ $i ]['path'] = $now;
+			}
 		}
 
 		return $rules;
