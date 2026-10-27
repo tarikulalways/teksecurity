@@ -254,7 +254,10 @@ class Options {
 		$stock = array(
 			'login'  => array( '/wp-login.php', Endpoint::login_path() ),
 			'rest'   => array( '/wp-json/*', Endpoint::rest_path() . '*' ),
-			'ajax'   => array( '/wp-admin/admin-ajax.php', Endpoint::admin_ajax_path() ),
+			// No stock path is kept for this one: it is recognised by its file
+			// name, so an earlier release's stored path is found without this
+			// class repeating it.
+			'ajax'   => array( null, Endpoint::admin_ajax_path() ),
 			'xmlrpc' => array( '/xmlrpc.php', Endpoint::xmlrpc_path() ),
 		);
 
@@ -269,7 +272,13 @@ class Options {
 
 			list( $was, $now ) = $stock[ $rule['key'] ];
 
-			if ( $was === $rule['path'] ) {
+			if ( null === $was ) {
+				$is_stock = '' !== $now && wp_basename( $now ) === wp_basename( $rule['path'] );
+			} else {
+				$is_stock = $was === $rule['path'];
+			}
+
+			if ( $is_stock ) {
 				$rules[ $i ]['path'] = $now;
 			}
 		}

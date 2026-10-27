@@ -30,15 +30,17 @@ defined( 'ABSPATH' ) || exit;
 class Endpoint {
 
 	/**
-	 * Path of admin-ajax.php, relative to the host.
+	 * Path of the admin AJAX handler, relative to the host.
 	 *
-	 * For a site at example.com this is `/wp-admin/admin-ajax.php`; for one
-	 * installed in a subdirectory, `/wp/wp-admin/admin-ajax.php`.
+	 * `admin_url()` is the only source: a site in a subdirectory, one that has
+	 * moved `wp-admin/`, or a filter on `admin_url` all show up here, and no
+	 * stock location is assumed when WordPress cannot say where it is.
 	 *
-	 * @return string Leading-slash path, never empty.
+	 * @return string Leading-slash path, or an empty string when WordPress
+	 *                gave no path to read.
 	 */
 	public static function admin_ajax_path() {
-		return self::path_of( admin_url( 'admin-ajax.php' ), '/wp-admin/admin-ajax.php' );
+		return self::path_of( admin_url( 'admin-ajax.php' ) );
 	}
 
 	/**
@@ -117,9 +119,15 @@ class Endpoint {
 	 * A path as a regular expression, for matching a request URI.
 	 *
 	 * @param string $path Host-relative path.
-	 * @return string Delimited, case-insensitive pattern.
+	 * @return string Delimited, case-insensitive pattern. An empty path gives a
+	 *                pattern that matches nothing, never one that matches
+	 *                every request.
 	 */
 	public static function pattern( $path ) {
+		if ( '' === (string) $path ) {
+			return '#(?!)#';
+		}
+
 		return '#' . preg_quote( $path, '#' ) . '#i';
 	}
 
@@ -127,10 +135,12 @@ class Endpoint {
 	 * The host-relative path of a WordPress-built URL.
 	 *
 	 * @param string $url      URL from admin_url(), rest_url() and friends.
-	 * @param string $fallback Path to use when the URL carries none.
-	 * @return string Leading-slash path.
+	 * @param string $fallback Path to use when the URL carries none. Empty by
+	 *                         default, so nothing is guessed on WordPress's
+	 *                         behalf.
+	 * @return string Leading-slash path, or $fallback.
 	 */
-	protected static function path_of( $url, $fallback ) {
+	protected static function path_of( $url, $fallback = '' ) {
 		$path = wp_parse_url( (string) $url, PHP_URL_PATH );
 
 		if ( ! is_string( $path ) || '' === $path ) {
