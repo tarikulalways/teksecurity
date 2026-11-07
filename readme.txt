@@ -502,10 +502,3 @@ First public release.
 * REST API under `teksecurity/v1`, guarded by `manage_options`.
 * 11 filters and 8 actions for extending every module.
 * Clean uninstall of all tables, options, user meta and scheduled jobs.
-
-== Upgrade Notice ==
-
-= 1.0.0 =
-First release of TekSecurity. After activating, run the four-question setup
-wizard, then add your own IP to the allowlist and check the Visitor IP source
-setting matches your hosting.
