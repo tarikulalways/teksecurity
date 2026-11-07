@@ -112,7 +112,7 @@ class Endpoint {
 	public static function plugin_path( $relative ) {
 		$relative = ltrim( (string) $relative, '/' );
 
-		return self::path_of( plugins_url( $relative ), '/wp-content/plugins/' . $relative );
+		return self::path_of( plugins_url( $relative ), '/' . $relative );
 	}
 
 	/**

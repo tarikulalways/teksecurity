@@ -137,8 +137,8 @@ class Logger {
 		);
 
 		$table  = esc_sql( Installer::table( 'events' ) );
-		$where  = array( '1=1' );
-		$params = array();
+		$where  = array( '1=%d' );
+		$params = array( 1 );
 
 		if ( 'all' !== $args['action'] && '' !== $args['action'] ) {
 			$where[]  = 'action = %s';
@@ -170,13 +170,9 @@ class Logger {
 		// The placeholders live inside $clause, which is assembled above, so the
 		// sniffs that count them statically cannot see them.
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQLPlaceholders, PluginCheck.Security.DirectDB.UnescapedDBParameter
-		if ( $params ) {
-			$total = (int) $wpdb->get_var(
-				$wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$clause}", $params )
-			);
-		} else {
-			$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE {$clause}" );
-		}
+		$total = (int) $wpdb->get_var(
+			$wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$clause}", $params )
+		);
 
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(

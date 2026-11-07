@@ -201,10 +201,12 @@ class Installer {
 	public static function drop_tables() {
 		global $wpdb;
 
-		foreach ( array( 'events', 'ips', 'lockouts', 'exclusions', 'integrity', 'vulnerabilities' ) as $key ) {
-			$table = esc_sql( self::table( $key ) );
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
-			$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
-		}
+		$tables = array_map(
+			array( __CLASS__, 'table' ),
+			array( 'events', 'ips', 'lockouts', 'exclusions', 'integrity', 'vulnerabilities' )
+		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i, %i, %i, %i, %i, %i', $tables ) );
 	}
 }
