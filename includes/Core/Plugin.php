@@ -75,6 +75,7 @@ final class Plugin {
 
 		$this->booted = true;
 
+		add_action( 'init', array( $this, 'load_textdomain' ) );
 		add_action( 'admin_init', array( 'TekSecurity\\Core\\Installer', 'maybe_upgrade' ) );
 
 		$this->services = array(
@@ -111,6 +112,18 @@ final class Plugin {
 	 */
 	public function service( $key ) {
 		return isset( $this->services[ $key ] ) ? $this->services[ $key ] : null;
+	}
+
+	/**
+	 * Load translations.
+	 *
+	 * @return void
+	 */
+	public function load_textdomain() {
+		// Kept deliberately: WordPress only auto-loads translations for plugins
+		// it serves itself, and this one also ships outside that directory.
+		// phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound
+		load_plugin_textdomain( 'teksecurity', false, dirname( TEKSEC_BASENAME ) . '/languages' );
 	}
 
 	/**
