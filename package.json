@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "build": "wp-scripts build",
+    "dist": "npm run build && wp dist-archive . ..",
     "start": "wp-scripts start",
     "lint:js": "wp-scripts lint-js src",
     "format": "wp-scripts format src",
