@@ -145,7 +145,13 @@ export default function Settings( { isAdv, toast, openWizard } ) {
 
 	const save = async () => {
 		try {
-			const next = await api.post( '/settings', draft );
+			// Only the sections this form edits. The integrity switch saves on
+			// its own, and must never be turned on as a side effect of saving
+			// something else.
+			const next = await api.post( '/settings', {
+				alerts: draft.alerts,
+				data: draft.data,
+			} );
 			setSaved( next );
 			setDraft( next );
 			toast( __( 'Settings saved', 'teksecurity' ) );
@@ -169,6 +175,56 @@ export default function Settings( { isAdv, toast, openWizard } ) {
 			setBusy( '' );
 		}
 	};
+
+	// Turning integrity checks on is the owner agreeing to the scan contacting
+	// WordPress.org, so it is saved straight away rather than held in the draft.
+	const toggleIntegrity = async ( enabled ) => {
+		setBusy( 'integrity' );
+
+		try {
+			const next = await api.post( '/settings', {
+				integrity: { enabled },
+			} );
+			setSaved( next );
+			setDraft( { ...next, alerts: draft.alerts, data: draft.data } );
+			toast(
+				enabled
+					? __( 'Core file integrity checks turned on', 'teksecurity' )
+					: __( 'Core file integrity checks turned off', 'teksecurity' )
+			);
+		} catch ( error ) {
+			toast( error.message, 'error' );
+		} finally {
+			setBusy( '' );
+		}
+	};
+
+	const integrityDesc = ! saved.integrity.enabled
+		? __(
+				'Off. When on, TekSecurity sends your WordPress version and language to WordPress.org once a day to fetch the official checksums for your core files. Nothing else about your site is sent.',
+				'teksecurity'
+		  )
+		: saved.integrity.lastScanAt
+		? sprintf(
+				/* translators: 1: relative time, 2: files compared, 3: problems found, already pluralised. */
+				__(
+					'Last run %1$s · %2$d files compared · %3$s',
+					'teksecurity'
+				),
+				timeAgo( saved.integrity.lastScanAt ),
+				saved.integrity.checked,
+				sprintf(
+					/* translators: %d: number of problems found. */
+					_n(
+						'%d problem',
+						'%d problems',
+						saved.integrity.issues,
+						'teksecurity'
+					),
+					saved.integrity.issues
+				)
+		  )
+		: __( 'Has not run yet.', 'teksecurity' );
 
 	const panels = {
 		alerts: (
@@ -282,48 +338,42 @@ export default function Settings( { isAdv, toast, openWizard } ) {
 			<Card title={ __( 'Scans', 'teksecurity' ) } flush>
 				<SettingRow
 					title={ __( 'Core file integrity', 'teksecurity' ) }
-					desc={
-						saved.integrity.lastScanAt
-							? sprintf(
-									/* translators: 1: relative time, 2: files compared, 3: problems found, already pluralised. */
-									__(
-										'Last run %1$s · %2$d files compared · %3$s',
-										'teksecurity'
-									),
-									timeAgo( saved.integrity.lastScanAt ),
-									saved.integrity.checked,
-									sprintf(
-										/* translators: %d: number of problems found. */
-										_n(
-											'%d problem',
-											'%d problems',
-											saved.integrity.issues,
-											'teksecurity'
-										),
-										saved.integrity.issues
-									)
-							  )
-							: __( 'Has not run yet.', 'teksecurity' )
-					}
+					desc={ integrityDesc }
 				>
-					<button
-						type="button"
-						className="ts-button ts-button--small"
-						disabled={ busy === 'integrity' }
-						onClick={ () =>
-							runScan(
-								'integrity',
-								__( 'Integrity scan finished', 'teksecurity' )
-							)
-						}
-					>
-						{ busy === 'integrity'
-							? __( 'Scanning…', 'teksecurity' )
-							: __( 'Scan now', 'teksecurity' ) }
-					</button>
+					<div className="ts-actions">
+						{ saved.integrity.enabled && (
+							<button
+								type="button"
+								className="ts-button ts-button--small"
+								disabled={ busy === 'integrity' }
+								onClick={ () =>
+									runScan(
+										'integrity',
+										__(
+											'Integrity scan finished',
+											'teksecurity'
+										)
+									)
+								}
+							>
+								{ busy === 'integrity'
+									? __( 'Scanning…', 'teksecurity' )
+									: __( 'Scan now', 'teksecurity' ) }
+							</button>
+						) }
+						<Switch
+							label={ __(
+								'Check core files against WordPress.org',
+								'teksecurity'
+							) }
+							checked={ saved.integrity.enabled }
+							disabled={ busy === 'integrity' }
+							onChange={ toggleIntegrity }
+						/>
+					</div>
 				</SettingRow>
 
-				{ findings && findings.length > 0 && (
+				{ saved.integrity.enabled && findings && findings.length > 0 && (
 					<div className="ts-findings">
 						<div className="ts-findings__head">
 							{ __(

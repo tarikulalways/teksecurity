@@ -38,8 +38,8 @@ matched it, and why it was dangerous.
   generic login errors.
 * **Two-factor authentication (2FA)** — authenticator app (TOTP), email codes
   and backup codes, per user or per role.
-* **Malware scanning** — daily core file integrity checks against the official
-  WordPress.org checksums.
+* **Malware scanning** — optional daily core file integrity checks against the
+  official WordPress.org checksums (off until you turn it on).
 * **Plugin vulnerability shields** — virtual patching for known exploits in the
   plugins you already have installed.
 * **Rate limiting** — per-IP, per-minute limits for login, REST API,
@@ -205,6 +205,10 @@ an injected backdoor in `wp-includes` gives itself away. Your themes, plugins
 and uploads are left alone, so deleting a bundled theme is never reported as
 tampering.
 
+This check is **off until you turn it on** under **Settings → Scans**, because
+it has to ask WordPress.org for those checksums. See *External services* below
+for exactly what is sent.
+
 = Traffic log you can actually read =
 
 Every blocked or logged request is recorded with its time, method, path, attack
@@ -230,9 +234,11 @@ and which addresses are locked out.
 
 TekSecurity stores the requests it blocks — including visitor IP addresses — in
 a table on your own site, for 7, 30 or 90 days as you choose, after which they
-are deleted automatically. Nothing is sent to us or to anyone else. The only
-outbound requests the plugin ever makes are to WordPress.org for official core
-checksums, and to the vulnerability advisory endpoint if you point it at one.
+are deleted automatically. Nothing is sent to us or to anyone else. TekSecurity
+makes no outbound request on activation or by default. It only contacts
+WordPress.org for official core checksums once you turn on core file integrity
+checks, and a vulnerability advisory endpoint only if a developer points it at
+one.
 
 = Built for developers =
 
@@ -251,6 +257,36 @@ checksums, and to the vulnerability advisory endpoint if you point it at one.
 * A React admin built with `@wordpress/scripts`, fully translatable, with a
   `.pot` file covering every string.
 * Uninstall removes every table, option, user meta key and scheduled job.
+
+== External services ==
+
+TekSecurity makes no request to any outside server when it is activated, and
+none at all with its default settings.
+
+**WordPress.org core checksums API** (`https://api.wordpress.org/core/checksums/1.0/`)
+
+Used by the optional core file integrity check, to get the official checksums
+of the WordPress core files so they can be compared with the files on your
+server. The check is off by default; nothing is sent until an administrator
+turns on **Settings → Scans → Core file integrity**. Once it is on, the plugin
+sends your WordPress version number and site language to WordPress.org once a
+day, and whenever an administrator clicks **Scan now**. As with every request
+WordPress makes, the request also carries your site address in its user agent.
+No other data is sent. Turning the check off stops the requests.
+WordPress.org privacy policy: https://wordpress.org/about/privacy/
+
+**Your own vulnerability advisory feed (developers only)**
+
+The plugin vulnerability check uses an advisory list bundled with the plugin
+and sends nothing. A developer can point it at their own JSON endpoint through
+the `teksecurity_vulnerability_feed_url` filter; only then does the plugin
+request that URL, twice a day, sending no data beyond the request itself.
+
+**WordPress.org plugin updates**
+
+The **Update to …** button on the Plugin shields screen installs a plugin update
+through WordPress's own updater, which contacts WordPress.org exactly as the
+Plugins screen does. It runs only when an administrator clicks the button.
 
 == Installation ==
 
@@ -358,9 +394,9 @@ third-party processor to declare.
 
 No. There is no account, no API key and no telemetry. Blocked requests are
 stored in a table on your own site and deleted automatically when your retention
-period expires. The only outbound requests the plugin ever makes are to
-WordPress.org for official core checksums, and to the vulnerability advisory
-endpoint if you point it at one.
+period expires. TekSecurity makes no outbound request unless you turn on core
+file integrity checks, which fetch official checksums from WordPress.org, or a
+developer points the vulnerability advisory feed at an endpoint.
 
 = What happens to my data if I delete the plugin? =
 
@@ -472,8 +508,8 @@ First public release.
 
 **Core file integrity**
 
-* Daily comparison against the official WordPress.org checksums for your exact
-  version and locale.
+* Optional daily comparison against the official WordPress.org checksums for
+  your exact version and locale, off until you turn it on.
 * Reports modified, missing and unexpected core files, scoped to `wp-admin`,
   `wp-includes` and the root PHP files so removing a bundled theme is never
   reported as tampering.

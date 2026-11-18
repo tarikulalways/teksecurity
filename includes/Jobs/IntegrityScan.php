@@ -32,7 +32,7 @@ class IntegrityScan extends Job {
 	 * @return array
 	 */
 	protected function handle() {
-		if ( ! Options::get( 'integrity.on', true ) ) {
+		if ( ! Options::get( 'integrity.on', false ) ) {
 			return array( 'skipped' => true );
 		}
 

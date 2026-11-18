@@ -10,6 +10,7 @@ namespace TekSecurity\API;
 use TekSecurity\Core\Options;
 use TekSecurity\Jobs\IntegrityScan;
 use TekSecurity\Jobs\PruneLogs;
+use TekSecurity\Jobs\Scheduler;
 use TekSecurity\Jobs\VulnerabilityScan;
 use TekSecurity\Modules\Integrity;
 use WP_Error;
@@ -180,7 +181,17 @@ class SettingsController extends Controller {
 			$settings['data']['proxy'] = $data['proxy'];
 		}
 
+		// Turning this on is the owner's consent to the integrity scan
+		// contacting WordPress.org, so it only ever changes on an explicit
+		// request from the Scans screen.
+		$integrity = (array) $request->get_param( 'integrity' );
+
+		if ( isset( $integrity['enabled'] ) ) {
+			$settings['integrity']['on'] = rest_sanitize_boolean( $integrity['enabled'] );
+		}
+
 		Options::save( $settings );
+		Scheduler::schedule();
 
 		return $this->get_item( $request );
 	}
@@ -239,7 +250,7 @@ class SettingsController extends Controller {
 	 * Run one job on demand.
 	 *
 	 * @param WP_REST_Request $request Request.
-	 * @return WP_REST_Response
+	 * @return WP_REST_Response|WP_Error
 	 */
 	public function run_scan( $request ) {
 		$jobs = array(
@@ -248,7 +259,16 @@ class SettingsController extends Controller {
 			'prune'         => PruneLogs::class,
 		);
 
-		$key   = (string) $request->get_param( 'job' );
+		$key = (string) $request->get_param( 'job' );
+
+		if ( 'integrity' === $key && ! Options::get( 'integrity.on', false ) ) {
+			return new WP_Error(
+				'teksecurity_integrity_off',
+				__( 'Turn on core file integrity checks first.', 'teksecurity' ),
+				array( 'status' => 409 )
+			);
+		}
+
 		$class = $jobs[ $key ];
 		$job   = new $class();
 

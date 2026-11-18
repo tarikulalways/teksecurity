@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-20T13:02:26+00:00\n"
+"POT-Creation-Date: 2026-11-18T16:31:21+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: teksecurity\n"
@@ -59,14 +59,18 @@ msgstr ""
 msgid "The update could not be installed. Try updating from the Plugins screen."
 msgstr ""
 
-#: includes/API/SettingsController.php:165
-#: src/pages/Settings.jsx:189
+#: includes/API/SettingsController.php:166
+#: src/pages/Settings.jsx:245
 msgid "Enter a valid email address, or choose Nothing below."
 msgstr ""
 
-#: includes/API/SettingsController.php:222
+#: includes/API/SettingsController.php:233
 #: src/components/Wizard.jsx:286
 msgid "Enter a valid email address, or choose Nothing."
+msgstr ""
+
+#: includes/API/SettingsController.php:267
+msgid "Turn on core file integrity checks first."
 msgstr ""
 
 #: includes/API/TrafficController.php:126
@@ -145,47 +149,47 @@ msgstr ""
 msgid "TekSecurity: the admin bundle is missing. Run \"npm install && npm run build\" in the plugin folder."
 msgstr ""
 
-#: includes/Core/Options.php:289
+#: includes/Core/Options.php:301
 msgid "All requests"
 msgstr ""
 
-#: includes/Core/Options.php:290
+#: includes/Core/Options.php:302
 msgid "Login page"
 msgstr ""
 
-#: includes/Core/Options.php:291
+#: includes/Core/Options.php:303
 msgid "REST API"
 msgstr ""
 
-#: includes/Core/Options.php:292
+#: includes/Core/Options.php:304
 msgid "Admin AJAX"
 msgstr ""
 
-#: includes/Core/Options.php:293
+#: includes/Core/Options.php:305
 msgid "Site search"
 msgstr ""
 
-#: includes/Core/Options.php:294
+#: includes/Core/Options.php:306
 msgid "XML-RPC"
 msgstr ""
 
-#: includes/Core/Plugin.php:128
+#: includes/Core/Plugin.php:141
 msgid "This request was blocked by the site firewall. If you think this is a mistake, contact the site owner."
 msgstr ""
 
-#: includes/Core/Plugin.php:129
+#: includes/Core/Plugin.php:142
 msgid "This request was blocked by a TekSecurity virtual patch."
 msgstr ""
 
-#: includes/Core/Plugin.php:130
+#: includes/Core/Plugin.php:143
 msgid "Too many requests from your address. Please wait a moment and try again."
 msgstr ""
 
-#: includes/Core/Plugin.php:131
+#: includes/Core/Plugin.php:144
 msgid "Request blocked"
 msgstr ""
 
-#: includes/Core/Plugin.php:132
+#: includes/Core/Plugin.php:145
 msgid "Slow down"
 msgstr ""
 
@@ -442,7 +446,7 @@ msgstr ""
 msgid "Address is on your blocklist"
 msgstr ""
 
-#: includes/Jobs/Scheduler.php:57
+#: includes/Jobs/Scheduler.php:59
 msgid "Once weekly"
 msgstr ""
 
@@ -1135,19 +1139,19 @@ msgstr ""
 
 #: src/components/Wizard.jsx:215
 #: src/pages/Settings.jsx:49
-#: src/pages/Settings.jsx:175
+#: src/pages/Settings.jsx:231
 msgid "Alerts"
 msgstr ""
 
 #: src/components/Wizard.jsx:220
 #: src/components/Wizard.jsx:304
-#: src/pages/Settings.jsx:205
+#: src/pages/Settings.jsx:261
 msgid "Critical attacks"
 msgstr ""
 
 #: src/components/Wizard.jsx:221
 #: src/components/Wizard.jsx:308
-#: src/pages/Settings.jsx:207
+#: src/pages/Settings.jsx:263
 msgid "Every block"
 msgstr ""
 
@@ -1158,7 +1162,7 @@ msgid "Step %d of 4"
 msgstr ""
 
 #: src/components/Wizard.jsx:276
-#: src/pages/Settings.jsx:180
+#: src/pages/Settings.jsx:236
 msgid "Alert email"
 msgstr ""
 
@@ -1167,17 +1171,17 @@ msgid "Usually the site administrator’s address."
 msgstr ""
 
 #: src/components/Wizard.jsx:296
-#: src/pages/Settings.jsx:198
+#: src/pages/Settings.jsx:254
 msgid "Send an email for"
 msgstr ""
 
 #: src/components/Wizard.jsx:299
-#: src/pages/Settings.jsx:200
+#: src/pages/Settings.jsx:256
 msgid "Alert level"
 msgstr ""
 
 #: src/components/Wizard.jsx:310
-#: src/pages/Settings.jsx:208
+#: src/pages/Settings.jsx:264
 msgid "Nothing"
 msgstr ""
 
@@ -1909,7 +1913,7 @@ msgid "Who hears about an attack, and how often."
 msgstr ""
 
 #: src/pages/Settings.jsx:59
-#: src/pages/Settings.jsx:231
+#: src/pages/Settings.jsx:287
 msgid "Data"
 msgstr ""
 
@@ -1918,7 +1922,7 @@ msgid "How long the log is kept and how visitor IPs are read."
 msgstr ""
 
 #: src/pages/Settings.jsx:68
-#: src/pages/Settings.jsx:282
+#: src/pages/Settings.jsx:338
 msgid "Scans"
 msgstr ""
 
@@ -1934,153 +1938,169 @@ msgstr ""
 msgid "Drop TekSecurity screens into your own pages."
 msgstr ""
 
-#: src/pages/Settings.jsx:151
+#: src/pages/Settings.jsx:157
 msgid "Settings saved"
 msgstr ""
 
-#: src/pages/Settings.jsx:183
-msgid "Alerts are sent from this site’s address."
+#: src/pages/Settings.jsx:192
+msgid "Core file integrity checks turned on"
 msgstr ""
 
-#: src/pages/Settings.jsx:215
-#: src/pages/Settings.jsx:222
-msgid "Weekly summary"
+#: src/pages/Settings.jsx:193
+msgid "Core file integrity checks turned off"
 msgstr ""
 
-#: src/pages/Settings.jsx:216
-msgid "Attacks blocked, plugin issues and lockouts, once a week."
-msgstr ""
-
-#: src/pages/Settings.jsx:234
-msgid "Keep traffic log for"
-msgstr ""
-
-#: src/pages/Settings.jsx:240
-#: src/pages/TwoFactor.jsx:357
-#: src/pages/TwoFactor.jsx:385
-msgid "7 days"
-msgstr ""
-
-#: src/pages/Settings.jsx:241
-#: src/pages/TwoFactor.jsx:389
-msgid "30 days"
-msgstr ""
-
-#: src/pages/Settings.jsx:242
-msgid "90 days"
-msgstr ""
-
-#: src/pages/Settings.jsx:248
-msgid "Visitor IP source"
-msgstr ""
-
-#: src/pages/Settings.jsx:251
-msgid "Wrong source makes every visitor look like one IP."
-msgstr ""
-
-#: src/pages/Settings.jsx:258
-msgid "REMOTE_ADDR (direct)"
-msgstr ""
-
-#: src/pages/Settings.jsx:262
-msgid "CF-Connecting-IP (Cloudflare)"
-msgstr ""
-
-#: src/pages/Settings.jsx:269
-msgid "X-Forwarded-For (other proxy)"
-msgstr ""
-
-#: src/pages/Settings.jsx:284
-msgid "Core file integrity"
+#: src/pages/Settings.jsx:203
+msgid "Off. When on, TekSecurity sends your WordPress version and language to WordPress.org once a day to fetch the official checksums for your core files. Nothing else about your site is sent."
 msgstr ""
 
 #. translators: 1: relative time, 2: files compared, 3: problems found, already pluralised.
-#: src/pages/Settings.jsx:289
+#: src/pages/Settings.jsx:210
 #, js-format
 msgid "Last run %1$s · %2$d files compared · %3$s"
 msgstr ""
 
 #. translators: %d: number of problems found.
-#: src/pages/Settings.jsx:297
+#: src/pages/Settings.jsx:218
 #, js-format
 msgid "%d problem"
 msgid_plural "%d problems"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/pages/Settings.jsx:306
+#: src/pages/Settings.jsx:227
 msgid "Has not run yet."
 msgstr ""
 
-#: src/pages/Settings.jsx:316
+#: src/pages/Settings.jsx:239
+msgid "Alerts are sent from this site’s address."
+msgstr ""
+
+#: src/pages/Settings.jsx:271
+#: src/pages/Settings.jsx:278
+msgid "Weekly summary"
+msgstr ""
+
+#: src/pages/Settings.jsx:272
+msgid "Attacks blocked, plugin issues and lockouts, once a week."
+msgstr ""
+
+#: src/pages/Settings.jsx:290
+msgid "Keep traffic log for"
+msgstr ""
+
+#: src/pages/Settings.jsx:296
+#: src/pages/TwoFactor.jsx:357
+#: src/pages/TwoFactor.jsx:385
+msgid "7 days"
+msgstr ""
+
+#: src/pages/Settings.jsx:297
+#: src/pages/TwoFactor.jsx:389
+msgid "30 days"
+msgstr ""
+
+#: src/pages/Settings.jsx:298
+msgid "90 days"
+msgstr ""
+
+#: src/pages/Settings.jsx:304
+msgid "Visitor IP source"
+msgstr ""
+
+#: src/pages/Settings.jsx:307
+msgid "Wrong source makes every visitor look like one IP."
+msgstr ""
+
+#: src/pages/Settings.jsx:314
+msgid "REMOTE_ADDR (direct)"
+msgstr ""
+
+#: src/pages/Settings.jsx:318
+msgid "CF-Connecting-IP (Cloudflare)"
+msgstr ""
+
+#: src/pages/Settings.jsx:325
+msgid "X-Forwarded-For (other proxy)"
+msgstr ""
+
+#: src/pages/Settings.jsx:340
+msgid "Core file integrity"
+msgstr ""
+
+#: src/pages/Settings.jsx:352
 msgid "Integrity scan finished"
 msgstr ""
 
-#: src/pages/Settings.jsx:321
-#: src/pages/Settings.jsx:396
+#: src/pages/Settings.jsx:360
+#: src/pages/Settings.jsx:446
 msgid "Scanning…"
 msgstr ""
 
-#: src/pages/Settings.jsx:322
-#: src/pages/Settings.jsx:397
+#: src/pages/Settings.jsx:361
+#: src/pages/Settings.jsx:447
 msgid "Scan now"
 msgstr ""
 
-#: src/pages/Settings.jsx:329
+#: src/pages/Settings.jsx:365
+msgid "Check core files against WordPress.org"
+msgstr ""
+
+#: src/pages/Settings.jsx:379
 msgid "These core files do not match what WordPress.org published for your version."
 msgstr ""
 
-#: src/pages/Settings.jsx:353
+#: src/pages/Settings.jsx:403
 msgid "Plugin vulnerabilities"
 msgstr ""
 
 #. translators: 1: relative time, 2: plugins checked, 3: findings phrase, already pluralised.
-#: src/pages/Settings.jsx:358
+#: src/pages/Settings.jsx:408
 #, js-format
 msgid "Last run %1$s · %2$d plugins checked · %3$s"
 msgstr ""
 
 #. translators: %d: number of vulnerable plugins found.
-#: src/pages/Settings.jsx:366
+#: src/pages/Settings.jsx:416
 #, js-format
 msgid "%d needs attention"
 msgid_plural "%d need attention"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/pages/Settings.jsx:375
+#: src/pages/Settings.jsx:425
 msgid "Matches your installed plugins against the advisory feed."
 msgstr ""
 
-#: src/pages/Settings.jsx:388
+#: src/pages/Settings.jsx:438
 msgid "Vulnerability scan finished"
 msgstr ""
 
-#: src/pages/Settings.jsx:406
+#: src/pages/Settings.jsx:456
 msgid "No shortcodes yet"
 msgstr ""
 
-#: src/pages/Settings.jsx:407
+#: src/pages/Settings.jsx:457
 msgid "TekSecurity does not add any shortcodes at the moment. When the two-factor sign-in screen can be placed on your own page, its shortcode will be listed here to copy."
 msgstr ""
 
-#: src/pages/Settings.jsx:419
+#: src/pages/Settings.jsx:469
 msgid "Settings sections"
 msgstr ""
 
-#: src/pages/Settings.jsx:445
+#: src/pages/Settings.jsx:495
 msgid "Unsaved changes"
 msgstr ""
 
-#: src/pages/Settings.jsx:462
+#: src/pages/Settings.jsx:512
 msgid "Run setup again"
 msgstr ""
 
-#: src/pages/Settings.jsx:472
+#: src/pages/Settings.jsx:522
 msgid "Discard"
 msgstr ""
 
-#: src/pages/Settings.jsx:481
+#: src/pages/Settings.jsx:531
 msgid "Save settings"
 msgstr ""
 

@@ -7,6 +7,8 @@
 
 namespace TekSecurity\Jobs;
 
+use TekSecurity\Core\Options;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -62,13 +64,50 @@ class Scheduler {
 	}
 
 	/**
-	 * Make sure every job is on the schedule.
+	 * Setting that switches a job's feature on, for the jobs that have one.
+	 *
+	 * @return array Hook => dotted settings path.
+	 */
+	protected static function switches() {
+		return array(
+			'teksecurity_integrity_scan'     => 'integrity.on',
+			'teksecurity_vulnerability_scan' => 'vulnerability.on',
+		);
+	}
+
+	/**
+	 * Whether a job's feature is switched on.
+	 *
+	 * @param string $hook Cron hook.
+	 * @return bool
+	 */
+	protected static function is_enabled( $hook ) {
+		$switches = self::switches();
+
+		return ! isset( $switches[ $hook ] ) || (bool) Options::get( $switches[ $hook ], false );
+	}
+
+	/**
+	 * Put every job whose feature is on on the schedule, and take the others off.
+	 *
+	 * A job that is switched off is not scheduled at all, rather than scheduled
+	 * and skipped: the integrity scan contacts WordPress.org, so it must not be
+	 * queued until the owner has turned it on.
 	 *
 	 * @return void
 	 */
 	public static function schedule() {
 		foreach ( self::events() as $hook => $recurrence ) {
-			if ( ! wp_next_scheduled( $hook ) ) {
+			$next = wp_next_scheduled( $hook );
+
+			if ( ! self::is_enabled( $hook ) ) {
+				if ( $next ) {
+					wp_clear_scheduled_hook( $hook );
+				}
+				continue;
+			}
+
+			if ( ! $next ) {
 				wp_schedule_event( time() + wp_rand( 60, 600 ), $recurrence, $hook );
 			}
 		}

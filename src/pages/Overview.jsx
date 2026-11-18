@@ -78,7 +78,7 @@ function buildBanner( data, go, setFw ) {
 		};
 	}
 
-	if ( data.integrity.issues > 0 ) {
+	if ( data.integrity.enabled && data.integrity.issues > 0 ) {
 		return {
 			tone: 'bad',
 			icon: 'ph-shield-warning',

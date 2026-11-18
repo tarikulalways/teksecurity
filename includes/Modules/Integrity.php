@@ -266,7 +266,7 @@ class Integrity {
 		$last = get_option( self::LAST_SCAN_OPTION, array() );
 
 		return array(
-			'enabled'    => (bool) Options::get( 'integrity.on', true ),
+			'enabled'    => (bool) Options::get( 'integrity.on', false ),
 			'lastScanAt' => isset( $last['at'] ) ? gmdate( 'c', (int) $last['at'] ) : null,
 			'checked'    => isset( $last['checked'] ) ? (int) $last['checked'] : 0,
 			'issues'     => isset( $last['issues'] ) ? (int) $last['issues'] : 0,

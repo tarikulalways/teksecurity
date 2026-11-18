@@ -83,8 +83,11 @@ class Options {
 				'svg'    => true,
 				'guests' => true,
 			),
+			// Off until the owner turns it on: the scan has to ask WordPress.org
+			// for checksums, and nothing may contact an outside server without
+			// the site owner's say-so.
 			'integrity'   => array(
-				'on'       => true,
+				'on'       => false,
 				'schedule' => 'daily',
 			),
 			'vulnerability' => array(
