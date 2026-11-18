@@ -15,6 +15,7 @@ if ( ! defined( 'TEKSEC_PATH' ) ) {
 
 TekSecurity\Core\Autoloader::register();
 TekSecurity\Core\Installer::drop_tables();
+TekSecurity\Core\Installer::delete_transients();
 
 $teksec_options = array(
 	'teksecurity_settings',

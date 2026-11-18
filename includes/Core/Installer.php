@@ -209,4 +209,27 @@ class Installer {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i, %i, %i, %i, %i, %i', $tables ) );
 	}
+
+	/**
+	 * Delete every transient the plugin stored. Used by uninstall.php.
+	 *
+	 * The rate-limit and login counters are named after each visitor's
+	 * address, so they cannot be listed up front the way the options are; they
+	 * are removed by their shared `teksec` prefix instead. On a site with a
+	 * persistent object cache they never reach the database and simply expire.
+	 *
+	 * @return void
+	 */
+	public static function delete_transients() {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+				$wpdb->esc_like( '_transient_teksec' ) . '%',
+				$wpdb->esc_like( '_transient_timeout_teksec' ) . '%'
+			)
+		);
+	}
 }

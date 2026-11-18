@@ -9,6 +9,7 @@ namespace TekSecurity\Modules;
 
 use TekSecurity\Core\Installer;
 use TekSecurity\Core\Options;
+use TekSecurity\Helpers\Counter;
 use TekSecurity\Helpers\Ip;
 use TekSecurity\Helpers\IpList;
 use TekSecurity\Helpers\Logger;
@@ -143,9 +144,7 @@ class Login {
 		$window   = max( 1, (int) Options::get( 'login.window', 15 ) );
 		$max      = max( 2, (int) Options::get( 'login.attempts', 5 ) );
 		$key      = self::ATTEMPT_PREFIX . md5( $ip );
-		$attempts = (int) get_transient( $key ) + 1;
-
-		set_transient( $key, $attempts, $window * MINUTE_IN_SECONDS );
+		$attempts = Counter::hit( $key, $window * MINUTE_IN_SECONDS );
 
 		if ( $attempts < $max ) {
 			return;

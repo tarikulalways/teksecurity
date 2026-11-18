@@ -20,6 +20,11 @@ class Alerts {
 	const THROTTLE_KEY = 'teksecurity_alert_sent';
 
 	/**
+	 * Cron hook that sends an alert queued before `init`.
+	 */
+	const QUEUE_HOOK = 'teksecurity_send_alert';
+
+	/**
 	 * Attack types treated as critical.
 	 *
 	 * @return array
@@ -40,6 +45,7 @@ class Alerts {
 	 */
 	public function register() {
 		add_action( 'teksecurity_event_logged', array( $this, 'maybe_alert' ) );
+		add_action( self::QUEUE_HOOK, array( $this, 'send_event_alert' ) );
 		add_action( 'teksecurity_ip_locked_out', array( $this, 'alert_lockout' ), 10, 3 );
 		add_action( 'teksecurity_integrity_scanned', array( $this, 'alert_integrity' ), 10, 2 );
 	}
@@ -74,17 +80,42 @@ class Alerts {
 
 		set_transient( $throttle, 1, HOUR_IN_SECONDS );
 
+		// The firewall, the rate limiter and the virtual patches end a request
+		// at `plugins_loaded`, before `init`, when translations cannot be loaded
+		// yet. Building the email there would load the text domain too early,
+		// so it is handed to WP-Cron and written on the next request instead.
+		if ( ! did_action( 'init' ) ) {
+			wp_schedule_single_event( time(), self::QUEUE_HOOK, array( (int) $event['id'] ) );
+			return;
+		}
+
+		$this->send_event_alert( (int) $event['id'] );
+	}
+
+	/**
+	 * Build and send the alert for one logged event.
+	 *
+	 * @param int $event_id Event id.
+	 * @return void
+	 */
+	public function send_event_alert( $event_id ) {
+		$event = Logger::find( (int) $event_id );
+
+		if ( ! $event ) {
+			return;
+		}
+
 		$this->send(
 			sprintf(
 				/* translators: 1: attack type, 2: site name. */
 				__( '[%1$s] Attack blocked on %2$s', 'teksecurity' ),
-				ucfirst( str_replace( '_', ' ', $event['attack_type'] ) ),
+				ucfirst( str_replace( '_', ' ', $event['type'] ) ),
 				self::site_name()
 			),
 			sprintf(
 				/* translators: 1: rule name, 2: IP address, 3: method and path, 4: admin URL. */
 				__( "TekSecurity blocked a request on %4\$s.\n\nRule: %1\$s\nFrom: %2\$s\nRequest: %3\$s\n\nOpen the traffic log: %5\$s", 'teksecurity' ),
-				$event['rule_name'],
+				$event['ruleName'],
 				$event['ip'],
 				$event['method'] . ' ' . $event['path'],
 				home_url(),

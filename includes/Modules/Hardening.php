@@ -9,6 +9,7 @@ namespace TekSecurity\Modules;
 
 use TekSecurity\Core\Options;
 use TekSecurity\Core\Plugin;
+use TekSecurity\Helpers\Counter;
 use TekSecurity\Helpers\Input;
 use TekSecurity\Helpers\Ip;
 use TekSecurity\Helpers\IpList;
@@ -22,6 +23,11 @@ defined( 'ABSPATH' ) || exit;
 class Hardening {
 
 	const RATE_PREFIX = 'teksec_rl_';
+
+	/**
+	 * How long "Block for 10 min" keeps an address out.
+	 */
+	const BLOCK_SECONDS = 600;
 
 	/**
 	 * Hook in.
@@ -68,6 +74,13 @@ class Hardening {
 			return;
 		}
 
+		$blocked = get_transient( self::block_key( $ip ) );
+
+		if ( is_array( $blocked ) && isset( $blocked['rule'], $blocked['until'] ) ) {
+			$this->rate_deny( (array) $blocked['rule'], 'Blocked for 10 minutes after going over the limit', $ip, (int) $blocked['until'] - time() );
+			return;
+		}
+
 		$rule = $this->matching_rule( Input::uri() );
 
 		if ( ! $rule ) {
@@ -83,18 +96,44 @@ class Hardening {
 		}
 
 		if ( 0 === (int) $rule['limit'] ) {
-			$this->rate_deny( $rule, 0, $ip );
+			$this->rate_deny( $rule, 'This path is blocked completely', $ip );
 			return;
 		}
 
-		$key   = self::RATE_PREFIX . $rule['key'] . '_' . md5( $ip );
-		$count = (int) get_transient( $key ) + 1;
+		$count = Counter::hit( self::RATE_PREFIX . $rule['key'] . '_' . md5( $ip ), MINUTE_IN_SECONDS );
 
-		set_transient( $key, $count, MINUTE_IN_SECONDS );
-
-		if ( $count > (int) $rule['limit'] ) {
-			$this->rate_deny( $rule, $count, $ip );
+		if ( $count <= (int) $rule['limit'] ) {
+			return;
 		}
+
+		// "Block" keeps the address out for the full ten minutes it promises,
+		// rather than only until the current one-minute window closes.
+		if ( 'block' === Options::get( 'ratelimit.act', 'throttle' ) ) {
+			set_transient(
+				self::block_key( $ip ),
+				array(
+					'rule'  => $rule,
+					'until' => time() + self::BLOCK_SECONDS,
+				),
+				self::BLOCK_SECONDS
+			);
+		}
+
+		$this->rate_deny(
+			$rule,
+			sprintf( '%1$d requests in 60 s (limit %2$d)', $count, (int) $rule['limit'] ),
+			$ip
+		);
+	}
+
+	/**
+	 * Transient key for an address blocked by the rate limiter.
+	 *
+	 * @param string $ip Visitor address.
+	 * @return string
+	 */
+	protected static function block_key( $ip ) {
+		return self::RATE_PREFIX . 'block_' . md5( $ip );
 	}
 
 	/**
@@ -155,13 +194,19 @@ class Hardening {
 	/**
 	 * Throttle or block a request that went over its limit.
 	 *
-	 * @param array  $rule  The rule that matched.
-	 * @param int    $count Requests counted in this minute.
-	 * @param string $ip    Visitor address.
+	 * @param array  $rule    The rule that matched.
+	 * @param string $payload What the log should say happened.
+	 * @param string $ip      Visitor address.
+	 * @param int    $retry   Seconds until the visitor may try again, when
+	 *                        known; otherwise the setting's default is sent.
 	 * @return void
 	 */
-	protected function rate_deny( array $rule, $count, $ip ) {
+	protected function rate_deny( array $rule, $payload, $ip, $retry = 0 ) {
 		$block = 'block' === Options::get( 'ratelimit.act', 'throttle' );
+
+		if ( $retry < 1 ) {
+			$retry = $block ? self::BLOCK_SECONDS : MINUTE_IN_SECONDS;
+		}
 
 		Logger::record(
 			array(
@@ -172,9 +217,7 @@ class Hardening {
 				'method'      => Firewall::method(),
 				'path'        => Firewall::uri(),
 				'matched_in'  => $rule['path'],
-				'payload'     => $count
-					? sprintf( '%1$d requests in 60 s (limit %2$d)', $count, (int) $rule['limit'] )
-					: 'This path is blocked completely',
+				'payload'     => $payload,
 				'ip'          => $ip,
 			)
 		);
@@ -182,7 +225,7 @@ class Hardening {
 		if ( ! headers_sent() ) {
 			status_header( $block ? 403 : 429 );
 			nocache_headers();
-			header( 'Retry-After: ' . ( $block ? 600 : 60 ) );
+			header( 'Retry-After: ' . (int) $retry );
 			header( 'X-TekSecurity: rate-limited' );
 		}
 

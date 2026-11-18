@@ -8,6 +8,7 @@
 namespace TekSecurity\Jobs;
 
 use TekSecurity\Core\Options;
+use TekSecurity\Modules\Alerts;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -122,5 +123,9 @@ class Scheduler {
 		foreach ( array_keys( self::events() ) as $hook ) {
 			wp_clear_scheduled_hook( $hook );
 		}
+
+		// Alerts queued from a blocked request carry the event id as their
+		// argument, so they are cleared by hook rather than by hook and args.
+		wp_unschedule_hook( Alerts::QUEUE_HOOK );
 	}
 }
